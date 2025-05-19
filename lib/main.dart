@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:careapp5_15/screens/splash_screen.dart'; // SplashScreen import
 import 'package:careapp5_15/screens/main_wrapper.dart'; // MainWrapper import
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ko_KR', null);
   runApp(const CareApp());
 }
 

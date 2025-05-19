@@ -1,43 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:careapp5_15/screens/care_schedule_page.dart';
 import 'package:careapp5_15/screens/notification_page.dart';
+import 'package:intl/intl.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  String _currentDateTime = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _updateDateTime();
+    // 1분마다 시간 업데이트
+    Future.delayed(const Duration(minutes: 1), _updateDateTime);
+  }
+
+  void _updateDateTime() {
+    final now = DateTime.now();
+    final formatter = DateFormat('yyyy년 M월 d일(E) a h:mm', 'ko_KR');
+    setState(() {
+      _currentDateTime = formatter.format(now);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leadingWidth: 100,
-        leading: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Image.asset(
-            'assets/images/careapp_logo.png',
-            width: 80,
-            height: 80,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.search, color: Colors.black), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.notifications_none, color: Colors.black),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationPage()),
-                );
-              }),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 상단 로고 및 아이콘
+            SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset('assets/images/careapp_logo.png', width: 100),
+                  Row(
+                    children: [
+                      IconButton(icon: const Icon(Icons.search, color: Colors.black), onPressed: () {}),
+                      IconButton(icon: const Icon(Icons.notifications_none, color: Colors.black),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const NotificationPage()),
+                            );
+                          }),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text(
               '안녕하세요,\n김세종 보호자님!',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -63,9 +85,9 @@ class MainScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('스마트 홈 센서', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text('2025년 5월 4일(일) 오후 12:00', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              children: [
+                const Text('스마트 홈 센서', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(_currentDateTime, style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
             const SizedBox(height: 12),

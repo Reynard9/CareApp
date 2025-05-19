@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:careapp5_15/screens/notification_page.dart'; // 알림 페이지 import
+import 'package:intl/intl.dart';
 
-
-class SensorDataPage extends StatelessWidget {
+class SensorDataPage extends StatefulWidget {
   const SensorDataPage({super.key});
+
+  @override
+  State<SensorDataPage> createState() => _SensorDataPageState();
+}
+
+class _SensorDataPageState extends State<SensorDataPage> {
+  String _currentDateTime = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _updateDateTime();
+    // 1분마다 시간 업데이트
+    Future.delayed(const Duration(minutes: 1), _updateDateTime);
+  }
+
+  void _updateDateTime() {
+    final now = DateTime.now();
+    final formatter = DateFormat('yyyy년 M월 d일(E) a h:mm', 'ko_KR');
+    setState(() {
+      _currentDateTime = formatter.format(now);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +83,11 @@ class SensorDataPage extends StatelessWidget {
               // 섹션 타이틀
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('📊 센서 데이터 현황',
+                children: [
+                  const Text('📊 센서 데이터 현황',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.pink)),
-                  Text('2025년 5월 4일(일) 오후 12:00',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(_currentDateTime,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
               const SizedBox(height: 12),

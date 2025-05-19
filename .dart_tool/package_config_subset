@@ -39,9 +39,9 @@ flutter_lints
 file:///Users/gyubin/.pub-cache/hosted/pub.dev/flutter_lints-4.0.0/
 file:///Users/gyubin/.pub-cache/hosted/pub.dev/flutter_lints-4.0.0/lib/
 intl
-3.3
-file:///Users/gyubin/.pub-cache/hosted/pub.dev/intl-0.20.2/
-file:///Users/gyubin/.pub-cache/hosted/pub.dev/intl-0.20.2/lib/
+3.0
+file:///Users/gyubin/.pub-cache/hosted/pub.dev/intl-0.19.0/
+file:///Users/gyubin/.pub-cache/hosted/pub.dev/intl-0.19.0/lib/
 leak_tracker
 3.2
 file:///Users/gyubin/.pub-cache/hosted/pub.dev/leak_tracker-10.0.8/
@@ -96,8 +96,8 @@ file:///Users/gyubin/.pub-cache/hosted/pub.dev/string_scanner-1.4.1/
 file:///Users/gyubin/.pub-cache/hosted/pub.dev/string_scanner-1.4.1/lib/
 table_calendar
 3.0
-file:///Users/gyubin/.pub-cache/hosted/pub.dev/table_calendar-3.2.0/
-file:///Users/gyubin/.pub-cache/hosted/pub.dev/table_calendar-3.2.0/lib/
+file:///Users/gyubin/.pub-cache/hosted/pub.dev/table_calendar-3.1.3/
+file:///Users/gyubin/.pub-cache/hosted/pub.dev/table_calendar-3.1.3/lib/
 term_glyph
 3.1
 file:///Users/gyubin/.pub-cache/hosted/pub.dev/term_glyph-1.2.2/
