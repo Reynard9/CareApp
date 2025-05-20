@@ -1,23 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:careapp5_15/screens/login_screen.dart'; // LoginScreen import
+import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
+import 'package:careapp5_15/screens/login_screen.dart'; // 로그인 화면 임포트
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatefulWidget { // 스플래시 화면 위젯
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState(); // 상태 관리
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> { // 스플래시 화면 상태
   @override
   void initState() {
     super.initState();
-
-    // 2초 후 LoginScreen으로 이동
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () { // 2초 후 이동
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()), // 로그인 화면으로 이동
       );
     });
   }
@@ -25,11 +23,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white, // 전체 배경 흰색
       body: Center(
         child: Image.asset(
           'assets/images/carecall_logo.png',
-          width: 180,
+          width: 180, // 로고 크기
           height: 180,
           fit: BoxFit.contain,
         ),
