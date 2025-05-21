@@ -3,6 +3,7 @@ import 'package:careapp5_15/screens/notification_page.dart'; // 알림 페이지
 import 'package:careapp5_15/screens/main_screen.dart'; // 홈 화면 임포트
 import 'package:careapp5_15/screens/sensor_data_page.dart'; // 센서 데이터 임포트
 import 'package:careapp5_15/screens/menu_page.dart'; // 메뉴 임포트
+import 'package:careapp5_15/screens/chat_detail_page.dart'; // 챗봇 상세 페이지 임포트
 
 class ChatHistoryPage extends StatelessWidget { // 챗봇 히스토리 확인 페이지
   const ChatHistoryPage({super.key});
@@ -84,27 +85,37 @@ class ChatHistoryPage extends StatelessWidget { // 챗봇 히스토리 확인 �
                 itemCount: chatHistory.length,
                 itemBuilder: (context, index) {
                   final item = chatHistory[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.pink[100],
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatDetailPage(date: item['date']!, title: item['title']!),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item['date']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black54)),
-                        const SizedBox(height: 6),
-                        Text(item['title']!, style: const TextStyle(fontSize: 16, color: Colors.pink, fontWeight: FontWeight.w600)),
-                      ],
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.pink[50],
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item['date']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black54)),
+                          const SizedBox(height: 6),
+                          Text(item['title']!, style: const TextStyle(fontSize: 16, color: Colors.pink, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
                   );
                 },

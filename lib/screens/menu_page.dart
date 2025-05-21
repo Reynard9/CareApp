@@ -3,6 +3,7 @@ import 'package:careapp5_15/screens/care_schedule_page.dart'; // 요양보호사
 import 'package:careapp5_15/screens/notification_page.dart'; // 알림 페이지 임포트
 import 'package:careapp5_15/screens/main_screen.dart'; // 홈 화면 임포트
 import 'package:careapp5_15/screens/sensor_data_page.dart'; // 센서 데이터 임포트
+import 'package:careapp5_15/screens/chat_history_page.dart'; // 챗봇 히스토리 페이지 임포트
 
 class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   const MenuPage({super.key});
@@ -10,32 +11,64 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   @override
   Widget build(BuildContext context) {
     final menuItems = [
-      _MenuItem(icon: Icons.chat_bubble_outline, label: '챗봇 대화하기'), // 챗봇 대화
-      _MenuItem(icon: Icons.history, label: '챗봇 히스토리'), // 챗봇 히스토리
-      _MenuItem(icon: Icons.insert_chart, label: '건강 리포트'), // 건강 리포트
-      _MenuItem(icon: Icons.sensors, label: '센서 데이터'), // 센서 데이터
-      _MenuItem(icon: Icons.calendar_today, label: '요양보호사 일정'), // 일정
-      _MenuItem(icon: Icons.notifications_active, label: '알림 설정'), // 알림 설정
-      _MenuItem(icon: Icons.settings, label: '앱 설정'), // 앱 설정
+      {
+        'icon': Icons.chat_bubble_outline,
+        'title': '챗봇 대화하기',
+        'subtitle': 'AI와 대화해보세요',
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.history,
+        'title': '챗봇 히스토리',
+        'subtitle': '이전 대화 기록 보기',
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatHistoryPage()),
+          );
+        },
+      },
+      {
+        'icon': Icons.insert_chart,
+        'title': '건강 리포트',
+        'subtitle': '건강 상태 리포트 확인',
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.sensors,
+        'title': '센서 감도 확인 및 설정',
+        'subtitle': '센서 감도 조정 및 상태 확인',
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.calendar_today,
+        'title': '요양보호사 일정',
+        'subtitle': '일정과 할일을 한 번에 관리',
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CareSchedulePage()),
+          );
+        },
+      },
+      {
+        'icon': Icons.notifications_active,
+        'title': '알림 설정',
+        'subtitle': '앱 알림을 관리하세요',
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NotificationPage()),
+          );
+        },
+      },
+      {
+        'icon': Icons.settings,
+        'title': '앱 설정',
+        'subtitle': '앱 환경을 설정하세요',
+        'onTap': () {},
+      },
     ];
-
-    int selectedIndex = 2; // 메뉴 인덱스
-    void onNavTap(int index) {
-      if (index == selectedIndex) return;
-      if (index == 0) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SensorDataPage()),
-        );
-      } else if (index == 2) {
-        // 현재 페이지이므로 아무 동작 없음
-      }
-    }
 
     return Scaffold(
       backgroundColor: Colors.white, // 전체 배경 흰색
@@ -84,42 +117,23 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
             ),
             const SizedBox(height: 20), // 여백
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 3, // 3열
-                mainAxisSpacing: 16, // 세로 간격
-                crossAxisSpacing: 16, // 가로 간격
-                padding: const EdgeInsets.symmetric(horizontal: 24), // 좌우 여백
-                children: menuItems.map((item) => _buildMenuItem(context, item)).toList(), // 메뉴 아이템들
+              child: ListView.separated(
+                itemCount: menuItems.length,
+                separatorBuilder: (context, idx) => const Divider(height: 1, indent: 24, endIndent: 24),
+                itemBuilder: (context, idx) {
+                  final item = menuItems[idx];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.pink[50],
+                      child: Icon(item['icon'] as IconData, color: Colors.pink),
+                    ),
+                    title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(item['subtitle'] as String),
+                    onTap: item['onTap'] as void Function(),
+                  );
+                },
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(BuildContext context, _MenuItem item) { // 메뉴 카드 위젯 생성 함수
-    return GestureDetector(
-      onTap: () {
-        if (item.label == '요양보호사 일정') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CareSchedulePage()), // 일정 페이지 이동
-          );
-        }
-        // TODO: 다른 기능도 필요 시 연결 추가
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.pink[50], // 카드 배경색
-          borderRadius: BorderRadius.circular(16), // 둥근 테두리
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // 중앙 정렬
-          children: [
-            Icon(item.icon, size: 32, color: Colors.pink), // 아이콘
-            const SizedBox(height: 8), // 여백
-            Text(item.label, textAlign: TextAlign.center), // 메뉴명
           ],
         ),
       ),
