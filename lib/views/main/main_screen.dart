@@ -61,10 +61,10 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
             const SizedBox(height: 16), // 여백
             const Text(
               '안녕하세요,\n김세종 보호자님!', // 인사말
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            const Text('무엇을 도와드릴까요?', style: TextStyle(fontSize: 16)), // 안내 문구
+            const Text('무엇을 도와드릴까요?', style: TextStyle(fontSize: 17)), // 안내 문구
             const SizedBox(height: 12),
             _statusGroupBox([
               _statusRow('assets/icons/alert_icon.png', '현재 김세종님은 편안하신 상태에요!'), // 상태 카드
@@ -79,21 +79,69 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
               ),
             ]),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('스마트 홈 센서', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), // 센서 타이틀
-                Text(_currentDateTime, style: const TextStyle(fontSize: 12, color: Colors.grey)), // 현재 날짜/시간
-              ],
+            Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 0),
+              child: Builder(
+                builder: (context) {
+                  final now = DateTime.now();
+                  final formatter = DateFormat('yyyy년 M월 d일(E) a h:mm', 'ko_KR');
+                  final nowStr = formatter.format(now);
+                  final currentNoise = 48.0; // 예시값, 실제 데이터로 교체 가능
+                  final currentAirQuality = 32.0; // 공기질 예시값
+                  final currentTemp = 18.0; // 온도 예시값
+                  final currentHumidity = 35.0; // 습도 예시값
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('스마트 홈 센서', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          Text(
+                            nowStr,
+                            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _sensorStatusCard(
+                        icon: Icons.align_vertical_bottom,
+                        iconColor: Colors.pink[200]!,
+                        title: '공기질 양호',
+                        subtitle: '${currentAirQuality.toStringAsFixed(1)} ㎍/㎥',
+                        bgColor: Colors.pink[50]!,
+                      ),
+                      const SizedBox(height: 10),
+                      _sensorStatusCard(
+                        icon: Icons.volume_up,
+                        iconColor: Colors.blue[400]!,
+                        title: '소음 발생 없음',
+                        subtitle: '${currentNoise.toStringAsFixed(1)} dB',
+                        bgColor: Colors.blue[50]!,
+                      ),
+                      const SizedBox(height: 10),
+                      _sensorStatusCard(
+                        icon: Icons.device_thermostat,
+                        iconColor: Colors.orange[400]!,
+                        title: '온도',
+                        subtitle: '${currentTemp.toStringAsFixed(1)}°C',
+                        bgColor: Colors.orange[50]!,
+                      ),
+                      const SizedBox(height: 10),
+                      _sensorStatusCard(
+                        icon: Icons.water_drop,
+                        iconColor: Colors.blue[300]!,
+                        title: '습도',
+                        subtitle: '${currentHumidity.toStringAsFixed(1)}%',
+                        bgColor: Colors.blue[50]!,
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 12),
-            _sensorGroupBox([
-              _sensorRow('assets/icons/air_quality_icon.png', '공기질 양호'),
-              _sensorRow('assets/icons/sound_icon.png', '소음 발생 없음'),
-              _sensorRow('assets/icons/temp_humidity_icon.png', '온도 18°C\n습도 40%'),
-            ]),
             const SizedBox(height: 24),
-            const Text('최근 챗봇 이력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), // 챗봇 이력 타이틀
+            const Text('최근 챗봇 이력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () {
@@ -102,49 +150,64 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                   MaterialPageRoute(builder: (context) => const ChatHistoryPage()),
                 );
               },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      margin: const EdgeInsets.only(bottom: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.pink[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text('어 오늘 아침 먹었어'), // 챗봇 대화 예시
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.black12.withOpacity(0.06)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CircleAvatar(
-                        backgroundColor: Colors.grey,
-                        radius: 12,
-                        child: Icon(Icons.person, size: 14, color: Colors.white),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        margin: const EdgeInsets.only(bottom: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.pink[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text('어 오늘 아침 먹었어'), // 챗봇 대화 예시
                       ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            '김치찌개 맛있으셨겠어요. 혹시\n요즘 스트레스를 많이 느끼시나요, 어르신?', // 챗봇 답변 예시
-                            style: TextStyle(fontSize: 14),
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CircleAvatar(
+                          backgroundColor: Colors.grey,
+                          radius: 12,
+                          child: Icon(Icons.person, size: 14, color: Colors.white),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              '김치찌개 맛있으셨겠어요. 혹시\n요즘 스트레스를 많이 느끼시나요, 어르신?', // 챗봇 답변 예시
+                              style: TextStyle(fontSize: 14),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -195,43 +258,49 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
     );
   }
 
-  Widget _sensorGroupBox(List<Widget> children) { // 센서 카드 그룹 박스
+  Widget _sensorStatusCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required Color bgColor,
+  }) {
     return Container(
+      margin: const EdgeInsets.symmetric(vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF7FF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12, width: 0.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black12.withOpacity(0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 6,
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
-      child: Column(
-        children: List.generate(children.length * 2 - 1, (index) {
-          if (index.isEven) {
-            return children[index ~/ 2];
-          } else {
-            return const Divider(height: 1);
-          }
-        }),
-      ),
-    );
-  }
-
-  Widget _sensorRow(String iconPath, String text) { // 센서 한 줄 위젯
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.asset(iconPath, width: 28, height: 28, color: Colors.pink), // 센서 아이콘
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 26),
+          ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+              ],
             ),
           ),
         ],

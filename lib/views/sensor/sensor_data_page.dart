@@ -38,7 +38,15 @@ class SensorDataPage extends StatelessWidget { // 센서 데이터 화면 위젯
                   Row(
                     children: [
                       IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-                      IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationPage()),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -47,7 +55,7 @@ class SensorDataPage extends StatelessWidget { // 센서 데이터 화면 위젯
               // 1. 상단 상태 카드
               Container(
                 padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.only(bottom: 20),
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -65,6 +73,27 @@ class SensorDataPage extends StatelessWidget { // 센서 데이터 화면 위젯
                   ],
                 ),
               ),
+              // 1-2. 어르신 정서 상태 카드
+              Container(
+                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.favorite, size: 48, color: Colors.pink[300]),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        '현재 어르신의 정서 상태는 안정적이에요 😊',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               // 2. 센서별 카드 3개
               Row(
                 children: [
@@ -76,16 +105,16 @@ class SensorDataPage extends StatelessWidget { // 센서 데이터 화면 위젯
                 ],
               ),
               const SizedBox(height: 20),
-              // 3. 습도 게이지 카드
+              // 3. 경고 메시지(습도 게이지 위로 이동)
+              const SizedBox(height: 20),
+              _warningBox(),
+              // 4. 습도 게이지 카드
               _humidityGaugeCard(humidityValue),
               const SizedBox(height: 20),
-              // 4. 온도/소음 그래프 추가
+              // 5. 온도/소음 그래프 추가
               _thermometerGaugeCard(temp.values.last, 0, 40),
               const SizedBox(height: 16),
               _noiseLineChart(noise.values, 50, noise.values.last),
-              // 5. 경고 메시지
-              const SizedBox(height: 20),
-              _warningBox(),
             ],
           ),
         ),
