@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:careapp5_15/views/chat/chatbot_summary_report_page.dart'; // 챗봇 요약 보고서 페이지 임포트
 
 class ChatDetailPage extends StatelessWidget {
   final String date;
@@ -124,7 +125,14 @@ class ChatDetailPage extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatbotSummaryReportPage(date: date, title: title),
+                            ),
+                          );
+                        },
                         icon: const Icon(Icons.summarize, color: Colors.pink),
                         label: const Text('챗봇 요약 보고서', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),

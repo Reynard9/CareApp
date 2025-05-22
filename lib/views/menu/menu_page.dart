@@ -4,6 +4,7 @@ import 'package:careapp5_15/views/main/notification_page.dart'; // 알림 페이
 import 'package:careapp5_15/views/main/main_screen.dart'; // 홈 화면 임포트
 import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데이터 임포트
 import 'package:careapp5_15/views/chat/chat_history_page.dart'; // 챗봇 히스토리 페이지 임포트
+import 'package:careapp5_15/views/care_call/care_call_schedule_page.dart'; // 정기 안부 케어콜 설정 페이지 임포트
 
 class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   const MenuPage({super.key});
@@ -15,7 +16,12 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.phone_in_talk,
         'title': '정기 안부 케어콜 설정',
         'subtitle': '정기적으로 안부 전화를 예약하고 관리하세요',
-        'onTap': () {},
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CareCallSchedulePage()),
+          );
+        },
       },
       {
         'icon': Icons.history,
