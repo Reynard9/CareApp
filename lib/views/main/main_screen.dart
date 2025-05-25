@@ -3,6 +3,7 @@ import 'package:careapp5_15/views/main/care_schedule_page.dart'; // 요양보호
 import 'package:careapp5_15/views/main/notification_page.dart'; // 알림 페이지 임포트
 import 'package:intl/intl.dart'; // 날짜/시간 포맷용
 import 'package:careapp5_15/views/chat/chat_history_page.dart'; // 챗봇 이력 페이지 임포트
+import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데이터 페이지 임포트
 
 class MainScreen extends StatefulWidget { // 메인 홈 화면 위젯
   const MainScreen({super.key});
@@ -32,7 +33,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 전체 배경 흰색
+      backgroundColor: const Color(0xFFF7F7F7),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20), // 좌우 여백
         child: Column(
@@ -67,16 +68,17 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
             const Text('무엇을 도와드릴까요?', style: TextStyle(fontSize: 17)), // 안내 문구
             const SizedBox(height: 12),
             _statusGroupBox([
-              _statusRow('assets/icons/alert_icon.png', '현재 김세종님은 편안하신 상태에요!'), // 상태 카드
+              _statusRow(Icons.health_and_safety, '현재 김세종님은 편안하신 상태에요!'),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CareSchedulePage()), // 일정 페이지 이동
+                    MaterialPageRoute(builder: (context) => const CareSchedulePage()),
                   );
                 },
-                child: _statusRow('assets/icons/calendar_check_icon.png', '요양 보호사 방문 일정 확인하기!'),
+                child: _statusRow(Icons.event_note, '요양 보호사 방문 일정 확인하기!'),
               ),
+              _statusRow(Icons.monitor_heart, '현재 디바이스 상태 확인하기!'),
             ]),
             const SizedBox(height: 24),
             Padding(
@@ -217,42 +219,61 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
   Widget _statusGroupBox(List<Widget> children) { // 상태 카드 그룹 박스
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF7FF), // 연한 핑크 배경
-        borderRadius: BorderRadius.circular(16), // 둥근 테두리
-        border: Border.all(color: Colors.black12, width: 0.5), // 테두리
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           )
         ],
       ),
       child: Column(
         children: List.generate(children.length * 2 - 1, (index) {
           if (index.isEven) {
-            return children[index ~/ 2]; // 상태 위젯
+            return children[index ~/ 2];
           } else {
-            return const Divider(height: 1); // 구분선
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Divider(
+                height: 1,
+                color: Colors.grey[200],
+                thickness: 1,
+              ),
+            );
           }
         }),
       ),
     );
   }
 
-  Widget _statusRow(String iconPath, String text) { // 상태 한 줄 위젯
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  Widget _statusRow(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       child: Row(
         children: [
-          Image.asset(iconPath, width: 32, height: 32), // 아이콘
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.pink[50],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, size: 28, color: Colors.pink[400]),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: Color(0xFF2D3436),
+                height: 1.3,
+              ),
             ),
           ),
+          Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
         ],
       ),
     );

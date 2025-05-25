@@ -16,6 +16,7 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.phone_in_talk,
         'title': '정기 안부 케어콜 설정',
         'subtitle': '정기적으로 안부 전화를 예약하고 관리하세요',
+        'color': const Color(0xFFFF6B6B),
         'onTap': () {
           Navigator.push(
             context,
@@ -27,6 +28,7 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.history,
         'title': '챗봇 히스토리',
         'subtitle': '이전 대화 기록 보기',
+        'color': const Color(0xFF4ECDC4),
         'onTap': () {
           Navigator.push(
             context,
@@ -38,18 +40,21 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.insert_chart,
         'title': '건강 리포트',
         'subtitle': '건강 상태 리포트 확인',
+        'color': const Color(0xFF6C5CE7),
         'onTap': () {},
       },
       {
         'icon': Icons.sensors,
         'title': '센서 감도 확인 및 설정',
         'subtitle': '센서 감도 조정 및 상태 확인',
+        'color': const Color(0xFFFFD93D),
         'onTap': () {},
       },
       {
         'icon': Icons.calendar_today,
         'title': '요양보호사 일정',
         'subtitle': '일정과 할일을 한 번에 관리',
+        'color': const Color(0xFF00B894),
         'onTap': () {
           Navigator.push(
             context,
@@ -61,6 +66,7 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.notifications_active,
         'title': '알림 설정',
         'subtitle': '앱 알림을 관리하세요',
+        'color': const Color(0xFFE17055),
         'onTap': () {
           Navigator.push(
             context,
@@ -72,72 +78,192 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'icon': Icons.settings,
         'title': '앱 설정',
         'subtitle': '앱 환경을 설정하세요',
+        'color': const Color(0xFF636E72),
         'onTap': () {},
       },
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white, // 전체 배경 흰색
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10), // 상단 여백
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 양쪽 정렬
-                children: [
-                  Image.asset('assets/images/careapp_logo.png', width: 100), // 상단 로고
-                  Row(
-                    children: [
-                      IconButton(icon: Icon(Icons.notifications_none),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const NotificationPage()), // 알림 페이지 이동
-                            );
-                          }),
-                      IconButton(icon: Icon(Icons.settings), onPressed: () {}), // 설정 아이콘
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1), // 구분선
-            ListTile(
-              leading: const CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.white), // 프로필 아이콘
-              ),
-              title: const Text('김세종', style: TextStyle(fontWeight: FontWeight.bold)), // 이름
-              subtitle: const Text('sejong@sejong.ac.kr'), // 이메일
-              trailing: const Icon(Icons.chevron_right), // 화살표
-              onTap: () {},
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 24.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('계정 설정', style: TextStyle(color: Colors.blue)), // 계정 설정
-              ),
-            ),
-            const SizedBox(height: 20), // 여백
-            Expanded(
-              child: ListView.separated(
-                itemCount: menuItems.length,
-                separatorBuilder: (context, idx) => const Divider(height: 1, indent: 24, endIndent: 24),
-                itemBuilder: (context, idx) {
-                  final item = menuItems[idx];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.pink[50],
-                      child: Icon(item['icon'] as IconData, color: Colors.pink),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Image.asset('assets/images/careapp_logo.png', width: 100),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.notifications_none, color: Color(0xFF2D3436)),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.settings, color: Color(0xFF2D3436)),
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(item['subtitle'] as String),
-                    onTap: item['onTap'] as void Function(),
-                  );
-                },
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.person, color: Color(0xFF4ECDC4), size: 38),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  '김세종',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Color(0xFF2D3436),
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'sejong@sejong.ac.kr',
+                                  style: TextStyle(
+                                    color: Color(0xFF636E72),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4),
+                      child: Text(
+                        '서비스',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D3436),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final item = menuItems[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: item['onTap'] as void Function(),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: (item['color'] as Color).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 24),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['title'] as String,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Color(0xFF2D3436),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        item['subtitle'] as String,
+                                        style: const TextStyle(
+                                          color: Color(0xFF636E72),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: menuItems.length,
+                ),
               ),
             ),
           ],
