@@ -4,6 +4,8 @@ import 'package:careapp5_15/views/main/notification_page.dart'; // 알림 페이
 import 'package:intl/intl.dart'; // 날짜/시간 포맷용
 import 'package:careapp5_15/views/chat/chat_history_page.dart'; // 챗봇 이력 페이지 임포트
 import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데이터 페이지 임포트
+import 'package:provider/provider.dart';
+import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
 
 class MainScreen extends StatefulWidget { // 메인 홈 화면 위젯
   const MainScreen({super.key});
@@ -32,6 +34,8 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
 
   @override
   Widget build(BuildContext context) {
+    final userName = context.watch<UserViewModel>().userName;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       body: SingleChildScrollView(
@@ -60,9 +64,9 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
               ),
             ),
             const SizedBox(height: 16), // 여백
-            const Text(
-              '안녕하세요,\n김세종 보호자님!', // 인사말
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              '안녕하세요,\n${userName} 보호자님!', // 인사말
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             const Text('무엇을 도와드릴까요?', style: TextStyle(fontSize: 17)), // 안내 문구
@@ -95,17 +99,17 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                           const Text('스마트 홈 센서', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                           Text(
                             nowStr,
                             style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
                       _sensorStatusCard(
                         icon: Icons.align_vertical_bottom,
                         iconColor: Colors.pink[200]!,
@@ -167,48 +171,48 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                     ),
                   ],
                 ),
-                child: Column(
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        margin: const EdgeInsets.only(bottom: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.pink[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text('어 오늘 아침 먹었어'), // 챗봇 대화 예시
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.pink[100],
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      child: const Text('어 오늘 아침 먹었어'), // 챗봇 대화 예시
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CircleAvatar(
-                          backgroundColor: Colors.grey,
-                          radius: 12,
-                          child: Icon(Icons.person, size: 14, color: Colors.white),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              '김치찌개 맛있으셨겠어요. 혹시\n요즘 스트레스를 많이 느끼시나요, 어르신?', // 챗봇 답변 예시
-                              style: TextStyle(fontSize: 14),
-                            ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        radius: 12,
+                        child: Icon(Icons.person, size: 14, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            '김치찌개 맛있으셨겠어요. 혹시\n요즘 스트레스를 많이 느끼시나요, 어르신?', // 챗봇 답변 예시
+                            style: TextStyle(fontSize: 14),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
             ),
           ],
         ),

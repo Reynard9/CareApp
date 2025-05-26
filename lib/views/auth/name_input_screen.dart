@@ -76,8 +76,11 @@ class _NameInputScreenState extends State<NameInputScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // 이름 저장 로직
-                      Navigator.pushReplacementNamed(context, '/qr-scan');
+                      Navigator.pushNamed(
+                        context,
+                        '/qr-scan',
+                        arguments: _nameController.text,
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
