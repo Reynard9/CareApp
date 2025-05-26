@@ -4,6 +4,10 @@ import 'package:careapp5_15/views/main/main_wrapper.dart'; // 메인 래퍼(네�
 import 'package:intl/date_symbol_data_local.dart'; // 날짜 포맷 로케일 초기화용
 import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/sensor_viewmodel.dart';
+import 'package:careapp5_15/views/auth/login_screen.dart';
+import 'package:careapp5_15/views/auth/name_input_screen.dart';
+import 'package:careapp5_15/views/auth/qr_scan_page.dart';
+import 'package:careapp5_15/views/main/main_screen.dart';
 
 void main() async { // 앱 실행 진입점
   WidgetsFlutterBinding.ensureInitialized(); // 플러터 바인딩 초기화
@@ -31,7 +35,14 @@ class CareApp extends StatelessWidget { // 앱 전체를 감싸는 위젯
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple), // 색상 테마
         useMaterial3: true, // 머티리얼3 사용
       ),
-      home: const SplashScreen(), // 앱 시작 시 SplashScreen부터 보여줌
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/name-input': (context) => const NameInputScreen(),
+        '/qr-scan': (context) => const QRScanPage(),
+        '/home': (context) => const MainScreen(),
+      },
     );
   }
 }
