@@ -85,39 +85,43 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF8F9FA),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset('assets/images/careapp_logo.png', width: 100),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NotificationPage()),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.settings, color: Colors.black),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Image.asset('assets/images/careapp_logo.png', width: 100),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_none, color: Color(0xFF2D3436)),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const NotificationPage()),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.settings, color: Color(0xFF2D3436)),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(

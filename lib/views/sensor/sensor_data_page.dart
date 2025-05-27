@@ -1,123 +1,234 @@
-import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
-import 'package:fl_chart/fl_chart.dart'; // 차트 라이브러리 임포트
-import 'package:careapp5_15/views/main/notification_page.dart'; // 알림 페이지 임포트
-import 'package:intl/intl.dart'; // 날짜/시간 포맷용
-import 'package:provider/provider.dart';
-import 'package:careapp5_15/viewmodels/sensor_viewmodel.dart';
-import 'package:careapp5_15/models/sensor_data.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:careapp5_15/views/main/notification_page.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class SensorDataPage extends StatelessWidget { // 센서 데이터 화면 위젯
+/// 센서 데이터를 표시하는 페이지 위젯
+/// 온도, 습도, 소음 데이터를 그래프로 시각화
+class SensorDataPage extends StatefulWidget {
   const SensorDataPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final sensorVM = Provider.of<SensorViewModel>(context);
-    final sensors = sensorVM.sensors;
-    final temp = sensors[0];
-    final humid = sensors[1];
-    final noise = sensors[2];
-    final humidityValue = humid.values.last;
-    final now = DateTime.now();
-    final formatter = DateFormat('yyyy년 M월 d일(E) a h:mm', 'ko_KR');
-    final currentDateTime = formatter.format(now);
+  State<SensorDataPage> createState() => _SensorDataPageState();
+}
 
+class _SensorDataPageState extends State<SensorDataPage> {
+  late Future<void> _loadDataFuture;
+  Timer? _timer;
+  double temperature = 24.0;  // 기본 더미 데이터
+  double humidity = 45.0;     // 기본 더미 데이터
+  double soundIn = 35.0;      // 기본 더미 데이터
+  List<double> temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];  // 더미 데이터
+  List<double> humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];     // 더미 데이터
+  List<double> soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];        // 더미 데이터
+  bool isUsingDummyData = false;
+
+  Future<void> fetchSensorData() async {
+    try {
+      final url = Uri.parse(dotenv.env['API_SENSOR_URL']!);
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        print('Sensor Data: $data');
+
+        setState(() {
+          temperature = (data[0]['data']['temperature']['in'] as num).toDouble();
+          humidity = (data[0]['data']['humidty']['in'] as num).toDouble();
+          soundIn = (data[0]['data']['sound_in'] as num).toDouble();
+
+          if (temperatureData.length > 10) {
+            temperatureData.removeAt(0);
+            humidityData.removeAt(0);
+            soundData.removeAt(0);
+          }
+          temperatureData.add(temperature);
+          humidityData.add(humidity);
+          soundData.add(soundIn);
+          isUsingDummyData = false;
+        });
+      } else {
+        print('Failed to fetch data: ${response.statusCode}');
+        _useDummyData();
+      }
+    } catch (e) {
+      print('Error fetching sensor data: $e');
+      _useDummyData();
+    }
+  }
+
+  void _useDummyData() {
+    if (!isUsingDummyData) {
+      setState(() {
+        // 더미 데이터로 업데이트
+        temperature = 24.0;
+        humidity = 45.0;
+        soundIn = 35.0;
+        
+        // 더미 데이터 리스트 업데이트
+        temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];
+        humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];
+        soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];
+        
+        isUsingDummyData = true;
+      });
+    }
+  }
+
+  void _startPolling() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      fetchSensorData();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSensorData();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6FAF7),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 상단 로고 + 검색/알림 버튼
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: const Color(0xFFF7F7F7),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F7F7),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset('assets/images/careapp_logo.png', width: 100),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NotificationPage()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset('assets/images/careapp_logo.png', width: 100),
+                  if (isUsingDummyData)
+                    Container(
+                      margin: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange[800]),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '센서 데이터를 불러오는 중입니다. 현재 더미 데이터가 표시됩니다.',
+                              style: TextStyle(color: Colors.orange[800]),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  // 1. 상단 상태 카드
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.emoji_emotions, size: 48, color: Colors.amber[600]),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Text(
+                            '오늘은 실내가 매우 쾌적해요! ☀️',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 1-2. 어르신 정서 상태 카드
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.favorite, size: 48, color: Colors.pink[300]),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Text(
+                            '현재 어르신의 정서 상태는 안정적이에요 😊',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 2. 센서별 카드 3개
                   Row(
                     children: [
-                      IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-                      IconButton(
-                        icon: const Icon(Icons.notifications_none),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationPage()),
-                          );
-                        },
-                      ),
+                      Expanded(child: _sensorCard(Icons.thermostat, '온도', '${temperature.toStringAsFixed(1)}°C', '쾌적', Colors.red)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _sensorCard(Icons.water_drop, '습도', '${humidity.toStringAsFixed(0)}%', '다소 건조', Colors.blue)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _sensorCard(Icons.volume_up, '소음', '${soundIn.toStringAsFixed(1)}dB', '높은 수준', Colors.orange)),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  // 3. 경고 메시지
+                  const SizedBox(height: 20),
+                  _warningBox(),
+                  // 4. 습도 게이지 카드
+                  _humidityGaugeCard(humidity),
+                  const SizedBox(height: 20),
+                  // 5. 온도/소음 그래프 추가
+                  _thermometerGaugeCard(temperature, 0, 40),
+                  const SizedBox(height: 16),
+                  _noiseLineChart(soundData, 50, soundIn),
                 ],
               ),
-              const SizedBox(height: 16),
-              // 1. 상단 상태 카드
-              Container(
-                padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.emoji_emotions, size: 48, color: Colors.amber[600]),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Text(
-                        '오늘은 실내가 매우 쾌적해요! ☀️',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // 1-2. 어르신 정서 상태 카드
-              Container(
-                padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.favorite, size: 48, color: Colors.pink[300]),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Text(
-                        '현재 어르신의 정서 상태는 안정적이에요 😊',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // 2. 센서별 카드 3개
-              Row(
-                children: [
-                  Expanded(child: _sensorCard(Icons.thermostat, '온도', '${temp.values.last.toStringAsFixed(1)}°C', '쾌적', Colors.red)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _sensorCard(Icons.water_drop, '습도', '${humid.values.last.toStringAsFixed(0)}%', '다소 건조', Colors.blue)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _sensorCard(Icons.volume_up, '소음', '${noise.values.last.toStringAsFixed(1)}dB', '높은 수준', Colors.orange)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // 3. 경고 메시지(습도 게이지 위로 이동)
-              const SizedBox(height: 20),
-              _warningBox(),
-              // 4. 습도 게이지 카드
-              _humidityGaugeCard(humidityValue),
-              const SizedBox(height: 20),
-              // 5. 온도/소음 그래프 추가
-              _thermometerGaugeCard(temp.values.last, 0, 40),
-              const SizedBox(height: 16),
-              _noiseLineChart(noise.values, 50, noise.values.last),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

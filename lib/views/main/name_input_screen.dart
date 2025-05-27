@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
-import 'package:careapp5_15/views/main/main_wrapper.dart'; // 메인 래퍼(네비게이션) 임포트
+import 'package:careapp5_15/views/auth/qr_scan_page.dart'; // QR 스캔 페이지 임포트
+import 'package:provider/provider.dart';
+import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
 
 class NameInputScreen extends StatefulWidget { // 이름 입력 화면 위젯
   const NameInputScreen({super.key});
@@ -10,6 +12,7 @@ class NameInputScreen extends StatefulWidget { // 이름 입력 화면 위젯
 
 class _NameInputScreenState extends State<NameInputScreen> { // 이름 입력 화면 상태
   final TextEditingController _nameController = TextEditingController(); // 이름 입력 컨트롤러
+  bool _showError = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +55,43 @@ class _NameInputScreenState extends State<NameInputScreen> { // 이름 입력 �
                       border: UnderlineInputBorder(),
                     ),
                     style: const TextStyle(fontSize: 18),
+                    onChanged: (value) {
+                      if (_showError && value.trim().isNotEmpty) {
+                        setState(() {
+                          _showError = false;
+                        });
+                      }
+                    },
                   ),
+                  if (_showError)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20, bottom: 0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFFE0E6),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Color(0xFFFFB3C6)),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.error_outline, color: Color(0xFFD72660)),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '이름을 입력하세요',
+                                style: TextStyle(
+                                  color: Color(0xFFD72660),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -60,35 +99,39 @@ class _NameInputScreenState extends State<NameInputScreen> { // 이름 입력 �
           Positioned(
             left: 0,
             right: 0,
-            bottom: bottomInset, // 키보드 바로 위에 붙게
+            bottom: bottomInset,
             child: SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 72,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black, // 버튼 배경
-                  foregroundColor: Colors.white, // 버튼 글씨
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
                   elevation: 0,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero, // 라운드 없이 꽉 차게
+                    borderRadius: BorderRadius.zero,
                   ),
                 ),
                 onPressed: () {
-                  final name = _nameController.text.trim(); // 입력값
+                  final name = _nameController.text.trim();
                   if (name.isNotEmpty) {
-                    Navigator.pushReplacement(
+                    setState(() {
+                      _showError = false;
+                    });
+                    context.read<UserViewModel>().setUserName(name);
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MainWrapper(), // 메인 래퍼로 이동
+                        builder: (context) => QRScanPage(name: name),
                       ),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('이름을 입력해주세요')), // 입력 안내
-                    );
+                    setState(() {
+                      _showError = true;
+                    });
                   }
                 },
-                child: const Text('다음', style: TextStyle(fontSize: 16)), // 버튼 텍스트
+                child: const Text('다음', style: TextStyle(fontSize: 18)),
               ),
             ),
           ),

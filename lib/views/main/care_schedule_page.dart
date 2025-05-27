@@ -9,7 +9,10 @@ class CareSchedulePage extends StatelessWidget { // 요양보호사 일정 화�
     return Scaffold(
       backgroundColor: Colors.white, // 전체 배경 흰색
       appBar: AppBar(
-        title: const Text('CareApp', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), // 타이틀
+        title: Transform.translate(
+          offset: const Offset(-100, 0),
+          child: Image.asset('assets/images/careapp_logo.png', width: 100), // 로고 이미지
+        ),
         backgroundColor: Colors.white, // 앱바 배경
         elevation: 0, // 그림자 없음
         leading: BackButton(color: Colors.black), // 뒤로가기

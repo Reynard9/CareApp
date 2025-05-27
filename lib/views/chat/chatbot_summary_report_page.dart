@@ -8,7 +8,7 @@ class ChatbotSummaryReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 전체 배경 흰색
+      backgroundColor: const Color(0xFFF7F7F7), // 배경색 변경
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,6 +55,125 @@ class ChatbotSummaryReportPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+            // 가로 스크롤 카드
+            Container(
+              height: 160,
+              margin: const EdgeInsets.only(bottom: 20),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  _summaryCard(
+                    icon: Icons.home,
+                    title: '주거환경',
+                    value: '양호',
+                    color: Colors.blue,
+                  ),
+                  _summaryCard(
+                    icon: Icons.account_balance_wallet,
+                    title: '경제상태',
+                    value: '안정',
+                    color: Colors.green,
+                  ),
+                  _summaryCard(
+                    icon: Icons.people,
+                    title: '사회적관계',
+                    value: '활발',
+                    color: Colors.purple,
+                  ),
+                  _summaryCard(
+                    icon: Icons.sports_esports,
+                    title: '여가활동',
+                    value: '다양',
+                    color: Colors.orange,
+                  ),
+                  _summaryCard(
+                    icon: Icons.accessibility_new,
+                    title: 'ADL',
+                    value: '독립',
+                    color: Colors.teal,
+                  ),
+                  _summaryCard(
+                    icon: Icons.cleaning_services,
+                    title: 'IADL',
+                    value: '보조',
+                    color: Colors.indigo,
+                  ),
+                  _summaryCard(
+                    icon: Icons.shower,
+                    title: '목욕',
+                    value: '정상',
+                    color: Colors.cyan,
+                  ),
+                  _summaryCard(
+                    icon: Icons.restaurant,
+                    title: '식사',
+                    value: '정상',
+                    color: Colors.amber,
+                  ),
+                  _summaryCard(
+                    icon: Icons.wc,
+                    title: '배변',
+                    value: '정상',
+                    color: Colors.brown,
+                  ),
+                  _summaryCard(
+                    icon: Icons.sentiment_dissatisfied,
+                    title: '우울',
+                    value: '양호',
+                    color: Colors.deepPurple,
+                  ),
+                  _summaryCard(
+                    icon: Icons.psychology,
+                    title: '인지',
+                    value: '정상',
+                    color: Colors.pink,
+                  ),
+                  _summaryCard(
+                    icon: Icons.psychology_alt,
+                    title: '망상',
+                    value: '없음',
+                    color: Colors.red,
+                  ),
+                  _summaryCard(
+                    icon: Icons.warning,
+                    title: '공격성',
+                    value: '없음',
+                    color: Colors.redAccent,
+                  ),
+                  _summaryCard(
+                    icon: Icons.visibility,
+                    title: '환각',
+                    value: '없음',
+                    color: Colors.deepOrange,
+                  ),
+                  _summaryCard(
+                    icon: Icons.directions_walk,
+                    title: '배회',
+                    value: '없음',
+                    color: Colors.orangeAccent,
+                  ),
+                  _summaryCard(
+                    icon: Icons.battery_alert,
+                    title: '피로',
+                    value: '양호',
+                    color: Colors.lightGreen,
+                  ),
+                  _summaryCard(
+                    icon: Icons.visibility,
+                    title: '시력',
+                    value: '정상',
+                    color: Colors.blueGrey,
+                  ),
+                  _summaryCard(
+                    icon: Icons.hearing,
+                    title: '청력',
+                    value: '정상',
+                    color: Colors.blueGrey,
+                  ),
+                ],
+              ),
+            ),
             // 본문 내용 (섹션별 분홍색 소제목 + 본문)
             Expanded(
               child: SingleChildScrollView(
@@ -84,6 +203,53 @@ class ChatbotSummaryReportPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _summaryCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 40),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -37,40 +37,45 @@ class ChatHistoryPage extends StatelessWidget { // 챗봇 히스토리 확인 �
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7), // 전체 배경 밝은 회색
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F7F7), // AppBar 배경도 밝은 회색으로 통일
+        backgroundColor: const Color(0xFFF7F7F7),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset('assets/images/careapp_logo.png', width: 100),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NotificationPage()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-        title: null,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const NotificationPage()),
-              );
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: Row(
                 children: const [
-                  Icon(Icons.flag, color: Colors.pink), // 상단 아이콘
+                  Icon(Icons.flag, color: Colors.pink),
                   SizedBox(width: 8),
-                  Text('챗봇 히스토리 확인', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.pink)), // 상단 제목
+                  Text('챗봇 히스토리 확인', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.pink)),
                 ],
               ),
             ),
