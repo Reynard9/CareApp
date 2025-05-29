@@ -46,7 +46,7 @@
 		</data>
 		<key>Frameworks/App.framework/App</key>
 		<data>
-		jY3cjYrWBrC7Tm8RG9Kzgqp6l3A=
+		iKo20vBAmblFdWDZNQrPawHOuds=
 		</data>
 		<key>Frameworks/App.framework/Info.plist</key>
 		<data>
@@ -54,7 +54,7 @@
 		</data>
 		<key>Frameworks/App.framework/_CodeSignature/CodeResources</key>
 		<data>
-		6P9HC0USKU83jUj1CYa3x2QUQuw=
+		vJlbmhr2qcNvuho5hGLM7ml5pA0=
 		</data>
 		<key>Frameworks/App.framework/flutter_assets/AssetManifest.bin</key>
 		<data>
@@ -138,7 +138,7 @@
 		</data>
 		<key>Frameworks/App.framework/flutter_assets/kernel_blob.bin</key>
 		<data>
-		/ENcgmX3vT9+2vQQnJwZUhC5w5c=
+		RXbQPW3MeHblXHmpdbtvzmwrrqM=
 		</data>
 		<key>Frameworks/App.framework/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf</key>
 		<data>
@@ -246,31 +246,31 @@
 		</data>
 		<key>Frameworks/MTBBarcodeScanner.framework/Info.plist</key>
 		<data>
-		DwYLnPJrNlv7H3gUYO9OXfBNuEI=
+		hCBXMY6uBNX7a/iYe5hsS4H0hXo=
 		</data>
 		<key>Frameworks/MTBBarcodeScanner.framework/MTBBarcodeScanner</key>
 		<data>
-		QhwoxURBC/6O3NAge+HRhWJSGpA=
+		4jMpdcxhWr0dHXDL4fPooFENp6k=
 		</data>
 		<key>Frameworks/MTBBarcodeScanner.framework/_CodeSignature/CodeResources</key>
 		<data>
-		Cf3eFAnuUtYfLmWSbJNA9PhtshU=
+		KRxm/DF3tOOsyySk25IftSi9NeI=
 		</data>
 		<key>Frameworks/qr_code_scanner.framework/Info.plist</key>
 		<data>
-		+N97SxI+M7XUKbBHLaiw7FLD39s=
+		e5JLM0P6eAgM9nBo3kwvgVqvF3I=
 		</data>
 		<key>Frameworks/qr_code_scanner.framework/_CodeSignature/CodeResources</key>
 		<data>
-		1nV4Lywpm5z3G6QqrPG/T8NDxq4=
+		maxNKrCnRwTZZ1HdsOIyRvkPeMo=
 		</data>
 		<key>Frameworks/qr_code_scanner.framework/qr_code_scanner</key>
 		<data>
-		x8pgKKoVeNLLa07NYBakO9dkMBE=
+		QCiulyZtz6pkQ4ryA4bP9XpE77c=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		q0wLNE/BYR7SbLZ44P3MQbHPBwg=
+		yzLBpZ2QzCADUT+7GxjqKC7XMdI=
 		</data>
 		<key>PkgInfo</key>
 		<data>
@@ -286,7 +286,7 @@
 		</data>
 		<key>permission_handler_apple_privacy.bundle/Info.plist</key>
 		<data>
-		l28pgelW6TaW1QIZEIJ3bbaaV+c=
+		AQzlXp2Gb/SiCLPoJW4IqBGGOUY=
 		</data>
 		<key>permission_handler_apple_privacy.bundle/PrivacyInfo.xcprivacy</key>
 		<data>
@@ -369,7 +369,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			IjxItuN587SB9HjwcDaF1t/f5tllh6GI0FkDhY6joEI=
+			04+zTBvHtnb+glL+IclpjOPpgSxNk7Iriwl5vHuxERU=
 			</data>
 		</dict>
 		<key>Frameworks/App.framework/Info.plist</key>
@@ -383,7 +383,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			rz6Y71BE4hoeLPZ/qP6554jMeMszi20eoebbqbuRtYY=
+			d0jr82CuGmxaTSO2PNxewxmgDDqwO46dqZTjg/3nClA=
 			</data>
 		</dict>
 		<key>Frameworks/App.framework/flutter_assets/AssetManifest.bin</key>
@@ -530,7 +530,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			m7aYfZt01hQgNtFmmZlatllIqn+s2o7GqnMKuorwcdU=
+			FdnqYF006TShRGABF6ht4d7MwCf6+pYibniuJSsZRZg=
 			</data>
 		</dict>
 		<key>Frameworks/App.framework/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf</key>
@@ -719,42 +719,42 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Db/Q721IeYmfNLRqrEOA2HE73utoDCAZaVtVCTM5YII=
+			iNIMkqbIok5oi64Y3ROk5heABx7YbNwPh489vnrqP3k=
 			</data>
 		</dict>
 		<key>Frameworks/MTBBarcodeScanner.framework/MTBBarcodeScanner</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			wG1zodF1RkP7ytgca+4aOCc7J4rpQFgROrq7wfPBf6Q=
+			7Qtv9tmkh4gsNidL0qv3pv09brgNjnVVws1ksVE9u+c=
 			</data>
 		</dict>
 		<key>Frameworks/MTBBarcodeScanner.framework/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Hj483QB6PXEw4eNjl7ZGOGpAS6Q8dea9h0B4labQemA=
+			sxnSGRyICKrX6+dqs9a0ugjnbmLwp9WPZLG4FcDJ3js=
 			</data>
 		</dict>
 		<key>Frameworks/qr_code_scanner.framework/Info.plist</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Qd3FT8z+UBaI+s+uac1jHcKB7ovK2z2/Julyva2vEGA=
+			e5r/8XsKlpt28GmhDPEy3kLMlN3g175jKn/9NolBn/E=
 			</data>
 		</dict>
 		<key>Frameworks/qr_code_scanner.framework/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			B20ni9JZFaPBF92rnUAgAxp7rTRqe9jOg+asXC4IwxI=
+			mqoiNrJMrRU3OEx2AT5yxkoUY/mh1XRIwEWxOaorFNc=
 			</data>
 		</dict>
 		<key>Frameworks/qr_code_scanner.framework/qr_code_scanner</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			bW4bkgj+L6+Wr+bOl/8MQ8Jlu8PIL2uttjNmN6cZ5Yo=
+			sk4YOOd25kwOBlwwHknay4OX1xYt0Ojc0AqhLEzVdoQ=
 			</data>
 		</dict>
 		<key>Runner.debug.dylib</key>
@@ -775,7 +775,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			6+fPlGd5Zxe3bTbF3nay1qAPQf2r93aDKIPqgkPFQsI=
+			2Zs0WDpcxPaN1EL4B0zSEJKnWTL/ulJ4WkDcGa8NMCA=
 			</data>
 		</dict>
 		<key>permission_handler_apple_privacy.bundle/PrivacyInfo.xcprivacy</key>

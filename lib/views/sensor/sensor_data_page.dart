@@ -136,97 +136,97 @@ class _SensorDataPageState extends State<SensorDataPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isUsingDummyData)
-                    Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.orange[800]),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '센서 데이터를 불러오는 중입니다. 현재 더미 데이터가 표시됩니다.',
-                              style: TextStyle(color: Colors.orange[800]),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 16),
-                  // 1. 상단 상태 카드
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.emoji_emotions, size: 48, color: Colors.amber[600]),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Text(
-                            '오늘은 실내가 매우 쾌적해요! ☀️',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isUsingDummyData)
+                Container(
+                  margin: const EdgeInsets.only(top: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[100],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  // 1-2. 어르신 정서 상태 카드
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.favorite, size: 48, color: Colors.pink[300]),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Text(
-                            '현재 어르신의 정서 상태는 안정적이에요 😊',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 2. 센서별 카드 3개
-                  Row(
+                  child: Row(
                     children: [
-                      Expanded(child: _sensorCard(Icons.thermostat, '온도', '${temperature.toStringAsFixed(1)}°C', '쾌적', Colors.red)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _sensorCard(Icons.water_drop, '습도', '${humidity.toStringAsFixed(0)}%', '다소 건조', Colors.blue)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _sensorCard(Icons.volume_up, '소음', '${soundIn.toStringAsFixed(1)}dB', '높은 수준', Colors.orange)),
+                      Icon(Icons.info_outline, color: Colors.orange[800]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '센서 데이터를 불러오는 중입니다. 현재 더미 데이터가 표시됩니다.',
+                          style: TextStyle(color: Colors.orange[800]),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  // 3. 경고 메시지
-                  const SizedBox(height: 20),
-                  _warningBox(),
-                  // 4. 습도 게이지 카드
-                  _humidityGaugeCard(humidity),
-                  const SizedBox(height: 20),
-                  // 5. 온도/소음 그래프 추가
-                  _thermometerGaugeCard(temperature, 0, 40),
-                  const SizedBox(height: 16),
-                  _noiseLineChart(soundData, 50, soundIn),
+                ),
+              const SizedBox(height: 16),
+              // 1. 상단 상태 카드
+              Container(
+                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.emoji_emotions, size: 48, color: Colors.amber[600]),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        '오늘은 실내가 매우 쾌적해요! ☀️',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 1-2. 어르신 정서 상태 카드
+              Container(
+                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.favorite, size: 48, color: Colors.pink[300]),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        '현재 어르신의 정서 상태는 안정적이에요 😊',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 2. 센서별 카드 3개
+              Row(
+                children: [
+                  Expanded(child: _sensorCard(Icons.thermostat, '온도', '${temperature.toStringAsFixed(1)}°C', '쾌적', Colors.red)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _sensorCard(Icons.water_drop, '습도', '${humidity.toStringAsFixed(0)}%', '다소 건조', Colors.blue)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _sensorCard(Icons.volume_up, '소음', '${soundIn.toStringAsFixed(1)}dB', '높은 수준', Colors.orange)),
                 ],
               ),
-            ),
+              const SizedBox(height: 20),
+              // 3. 경고 메시지
+              const SizedBox(height: 20),
+              _warningBox(),
+              // 4. 습도 게이지 카드
+              _humidityGaugeCard(humidity),
+              const SizedBox(height: 20),
+              // 5. 온도/소음 그래프 추가
+              _thermometerGaugeCard(temperature, 0, 40),
+              const SizedBox(height: 16),
+              _noiseLineChart(soundData, 50, soundIn),
+            ],
+          ),
+        ),
           ),
         ],
       ),

@@ -91,7 +91,7 @@ class _NameInputScreenState extends State<NameInputScreen> { // 이름 입력 �
                           ],
                         ),
                       ),
-                    ),
+                  ),
                 ],
               ),
             ),
