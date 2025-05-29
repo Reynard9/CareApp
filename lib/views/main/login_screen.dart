@@ -1,8 +1,45 @@
 import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
 import 'package:careapp5_15/views/main/name_input_screen.dart'; // 이름 입력 화면 임포트
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 class LoginScreen extends StatelessWidget { // 로그인 화면 위젯
   const LoginScreen({super.key});
+
+  Future<void> _handleKakaoLogin(BuildContext context) async {
+    try {
+      bool isInstalled = await isKakaoTalkInstalled();
+      
+      OAuthToken token = isInstalled 
+          ? await UserApi.instance.loginWithKakaoTalk()
+          : await UserApi.instance.loginWithKakaoAccount();
+
+      // 로그인 성공 시 사용자 정보 가져오기
+      User user = await UserApi.instance.me();
+      
+      // TODO: 사용자 정보 처리 (예: 로컬 저장소에 저장)
+      print('카카오 로그인 성공: ${user.kakaoAccount?.profile?.nickname}');
+      
+      // 이름 입력 화면으로 이동
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NameInputScreen(),
+          ),
+        );
+      }
+    } catch (error) {
+      print('카카오 로그인 실패: $error');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('카카오 로그인에 실패했습니다. 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +100,17 @@ class LoginScreen extends StatelessWidget { // 로그인 화면 위젯
                     );
                   },
                   child: const Text('Continue'), // 버튼 텍스트
+                ),
+              ),
+              const SizedBox(height: 16),
+              const SizedBox(height: 32), // 여백 추가
+              GestureDetector(
+                onTap: () => _handleKakaoLogin(context),
+                child: Image.asset(
+                  'assets/images/kakao_logo.png',
+                  width: double.infinity,
+                  height: 50,
+                  fit: BoxFit.contain,
                 ),
               ),
             ],
