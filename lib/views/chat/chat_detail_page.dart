@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:careapp5_15/views/chat/chatbot_summary_report_page.dart'; // 챗봇 요약 보고서 페이지 임포트
+import 'package:careapp5_15/views/chat/call_page.dart';
 
 class ChatDetailPage extends StatelessWidget {
   final String date;
@@ -39,7 +40,14 @@ class ChatDetailPage extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.phone, color: Colors.black),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CallPage(elderName: '김세종'),
+                        ),
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.videocam, color: Colors.black),
