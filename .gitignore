@@ -39,4 +39,7 @@ macos/build/
 # 기타
 *.log
 *.lock
-*.DS_Store 
+*.DS_Store
+
+# 환경 변수
+.env 

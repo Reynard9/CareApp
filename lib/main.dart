@@ -10,12 +10,16 @@ import 'package:careapp5_15/views/auth/name_input_screen.dart';
 import 'package:careapp5_15/views/auth/qr_scan_page.dart';
 import 'package:careapp5_15/views/main/main_screen.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async { // 앱 실행 진입점
   WidgetsFlutterBinding.ensureInitialized(); // 플러터 바인딩 초기화
   
+  // 환경 변수 로드
+  await dotenv.load(fileName: ".env");
+  
   // 카카오 SDK 초기화
-  KakaoSdk.init(nativeAppKey: '0b693528447d1f9ef45a59bcda8b7ab5');
+  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY'] ?? '');
   
   await initializeDateFormatting('ko_KR', null); // 날짜/시간 포맷을 한국어로 초기화
   runApp(
