@@ -1,6 +1,6 @@
-# careapp5_15
+# DeepCare-CareApp
 
-A new Flutter project.
+A Flutter project for elderly care management.
 
 ## Getting Started
 
