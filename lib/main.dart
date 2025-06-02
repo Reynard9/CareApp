@@ -5,7 +5,7 @@ import 'package:intl/date_symbol_data_local.dart'; // 날짜 포맷 로케일 �
 import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/sensor_viewmodel.dart';
 import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
-import 'package:careapp5_15/views/auth/login_screen.dart';
+import 'package:careapp5_15/views/main/login_screen.dart';
 import 'package:careapp5_15/views/auth/name_input_screen.dart';
 import 'package:careapp5_15/views/auth/qr_scan_page.dart';
 import 'package:careapp5_15/views/main/main_screen.dart';
@@ -55,7 +55,7 @@ class CareApp extends StatelessWidget { // 앱 전체를 감싸는 위젯
           final name = ModalRoute.of(context)!.settings.arguments as String?;
           return QRScanPage(name: name ?? '');
         },
-        '/home': (context) => const MainScreen(),
+        '/home': (context) => const MainWrapper(),
       },
     );
   }

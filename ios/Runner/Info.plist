@@ -45,24 +45,5 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>디버깅을 위해 로컬 네트워크 접근이 필요합니다.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_dartobservatory._tcp</string>
-	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>QR 코드를 스캔하기 위해 카메라 접근 권한이 필요합니다.</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>kakao0b693528447d1f9ef45a59bcda8b7ab5</string>
-			</array>
-		</dict>
-	</array>
 </dict>
 </plist>
