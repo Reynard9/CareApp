@@ -3,8 +3,9 @@ import 'package:careapp5_15/views/main/care_schedule_page.dart'; // 요양보호
 import 'package:careapp5_15/views/main/notification_page.dart'; // 알림 페이지 임포트
 import 'package:careapp5_15/views/main/main_screen.dart'; // 홈 화면 임포트
 import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데이터 임포트
-import 'package:careapp5_15/views/chat/chat_history_page.dart'; // 챗봇 히스토리 페이지 임포트
 import 'package:careapp5_15/views/care_call/care_call_schedule_page.dart'; // 정기 안부 케어콜 설정 페이지 임포트
+import 'package:careapp5_15/views/settings/app_settings_page.dart'; // 앱 설정 페이지 임포트
+import 'package:careapp5_15/views/settings/notification_settings_page.dart'; // 알림 설정 페이지 임포트
 
 class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   const MenuPage({super.key});
@@ -21,18 +22,6 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CareCallSchedulePage()),
-          );
-        },
-      },
-      {
-        'icon': Icons.history,
-        'title': '챗봇 히스토리',
-        'subtitle': '이전 대화 기록 보기',
-        'color': const Color(0xFF4ECDC4),
-        'onTap': () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatHistoryPage()),
           );
         },
       },
@@ -70,7 +59,7 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'onTap': () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const NotificationPage()),
+            MaterialPageRoute(builder: (context) => const NotificationSettingsPage()),
           );
         },
       },
@@ -79,7 +68,12 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'title': '앱 설정',
         'subtitle': '앱 환경을 설정하세요',
         'color': const Color(0xFF636E72),
-        'onTap': () {},
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AppSettingsPage()),
+          );
+        },
       },
     ];
 
@@ -106,7 +100,12 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
                             ),
                             IconButton(
                               icon: const Icon(Icons.settings, color: Colors.black),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const AppSettingsPage()),
+                                );
+                              },
                             ),
                           ],
                         ),
