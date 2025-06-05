@@ -84,4 +84,43 @@ app.*.map.json
 !.env.example
 
 # API documentation and test files
-assets/api/ 
+assets/api/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Build files
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+
+# Platform specific
+*.DS_Store
+*.log
+*.pyc
+*.swp
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# Flutter/Dart
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Web
+lib/generated_plugin_registrant.dart
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release 
