@@ -98,7 +98,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                             MaterialPageRoute(builder: (context) => const CareSchedulePage()),
                           );
                         },
-                        child: _statusRow(Icons.event_note, '요양 보호사 방문 일정 확인하기!'),
+                        child: _statusRow(Icons.event_note, '어르신의 일정 확인 및 관리하기!'),
                       ),
                       GestureDetector(
                         onTap: () {

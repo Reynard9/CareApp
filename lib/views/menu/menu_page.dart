@@ -7,6 +7,8 @@ import 'package:careapp5_15/views/care_call/care_call_schedule_page.dart'; // �
 import 'package:careapp5_15/views/settings/app_settings_page.dart'; // 앱 설정 페이지 임포트
 import 'package:careapp5_15/views/settings/notification_settings_page.dart'; // 알림 설정 페이지 임포트
 import 'package:careapp5_15/views/settings/sensor_sensitivity_page.dart'; // 센서 감도 설정 페이지 임포트
+import 'package:careapp5_15/views/health/health_report_page.dart'; // 건강 리포트 페이지 임포트
+import 'package:careapp5_15/views/profile/profile_page.dart'; // 프로필 페이지 임포트
 
 class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   const MenuPage({super.key});
@@ -31,7 +33,12 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'title': '건강 리포트',
         'subtitle': '건강 상태 리포트 확인',
         'color': const Color(0xFF6C5CE7),
-        'onTap': () {},
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HealthReportPage()),
+          );
+        },
       },
       {
         'icon': Icons.sensors,
@@ -47,8 +54,8 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
       },
       {
         'icon': Icons.calendar_today,
-        'title': '요양보호사 일정',
-        'subtitle': '일정과 할일을 한 번에 관리',
+        'title': '일정 관리',
+        'subtitle': '일정과 할 일을 한 번에 관리',
         'color': const Color(0xFF00B894),
         'onTap': () {
           Navigator.push(
@@ -140,51 +147,59 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
                           ),
                         ],
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                              child: Icon(Icons.person, color: Color(0xFF4ECDC4), size: 38),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  '김세종',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Color(0xFF2D3436),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfilePage()),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'sejong@sejong.ac.kr',
-                                  style: TextStyle(
-                                    color: Color(0xFF636E72),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: const CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.white,
+                                child: Icon(Icons.person, color: Color(0xFF4ECDC4), size: 38),
+                              ),
                             ),
-                          ),
-                          Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
-                        ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    '김세종',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Color(0xFF2D3436),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'sejong@sejong.ac.kr',
+                                    style: TextStyle(
+                                      color: Color(0xFF636E72),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),

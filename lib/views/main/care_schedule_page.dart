@@ -7,103 +7,437 @@ class CareSchedulePage extends StatelessWidget { // 요양보호사 일정 화�
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 전체 배경 흰색
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Transform.translate(
-          offset: const Offset(-100, 0),
-          child: Image.asset('assets/images/careapp_logo.png', width: 100), // 로고 이미지
-        ),
-        backgroundColor: Colors.white, // 앱바 배경
-        elevation: 0, // 그림자 없음
-        leading: BackButton(color: Colors.black), // 뒤로가기
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: BackButton(color: Colors.black),
+        title: const Text('일정 관리', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16), // 전체 패딩
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('이번주 목요일에 방문 예정이에요!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), // 안내 문구
-            const SizedBox(height: 12), // 여백
+            // 상단 설명
+            const Text(
+              '다가오는 방문 일정과 할 일을 한눈에 확인하고 관리하세요.',
+              style: TextStyle(fontSize: 16, color: Color(0xFF636E72)),
+            ),
+            const SizedBox(height: 20),
 
-            // 캘린더
+            // 캘린더 카드
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black12), // 테두리
-                borderRadius: BorderRadius.circular(12), // 둥근 테두리
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
+              padding: const EdgeInsets.all(16),
               child: TableCalendar(
-                firstDay: DateTime.utc(2020, 1, 1), // 시작 날짜
-                lastDay: DateTime.utc(2030, 12, 31), // 끝 날짜
-                focusedDay: DateTime.now(), // 오늘 날짜
-                headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true), // 헤더 스타일
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(color: Colors.pink, shape: BoxShape.circle), // 오늘 표시
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: DateTime.now(),
+                headerStyle: const HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  leftChevronIcon: Icon(Icons.chevron_left, color: Colors.pink),
+                  rightChevronIcon: Icon(Icons.chevron_right, color: Colors.pink),
+                  titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.pink[200],
+                    shape: BoxShape.circle,
+                  ),
+                  selectedDecoration: BoxDecoration(
+                    color: Colors.pink,
+                    shape: BoxShape.circle,
+                  ),
+                  weekendTextStyle: const TextStyle(color: Colors.pink),
+                  defaultTextStyle: const TextStyle(color: Color(0xFF2D3436)),
                 ),
               ),
             ),
 
-            const SizedBox(height: 20), // 여백
+            const SizedBox(height: 28),
 
             // 방문 일정 카드
             Container(
-              padding: const EdgeInsets.all(16), // 내부 패딩
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[100], // 카드 배경
-                borderRadius: BorderRadius.circular(12), // 둥근 테두리
-                border: Border.all(color: Colors.black12), // 테두리
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('이번주 (목)', style: TextStyle(fontWeight: FontWeight.bold)), // 요일
-                  const SizedBox(height: 8), // 여백
-                  Row(
-                    children: const [
-                      Text('방문 예정 시간', style: TextStyle(color: Colors.grey)), // 안내
-                      Spacer(),
-                      Text('오후 ', style: TextStyle(fontSize: 16)), // 시간
-                      Text('2:30',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)), // 시간
-                    ],
-                  ),
-                  const SizedBox(height: 8), // 여백
                   Row(
                     children: [
-                      const Text('방문 예정 시간이 되면 알려드릴게요.', style: TextStyle(color: Colors.grey)), // 안내
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.pink[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.calendar_today, color: Colors.pink, size: 28),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('이번주 목요일 방문', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       const Spacer(),
-                      Switch(value: true, onChanged: (v) {}), // 알림 스위치
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.pink[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text('예정', style: TextStyle(color: Colors.pink, fontWeight: FontWeight.bold)),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 12), // 여백
-                  const Text('방문 예정 활동', style: TextStyle(fontWeight: FontWeight.bold)), // 안내
-                  const SizedBox(height: 8), // 여백
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      _activityButton('산책 보조'), // 활동 버튼
-                      const SizedBox(width: 10), // 여백
-                      _activityButton('식사 준비'), // 활동 버튼
+                      const Icon(Icons.access_time, color: Colors.grey, size: 20),
+                      const SizedBox(width: 6),
+                      const Text('오후 2:30', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Text('알림 받기', style: TextStyle(color: Colors.grey)),
+                          Switch(value: true, onChanged: (v) {}),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  const Text('방문 예정 활동', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _activityButton('산책 보조', Icons.directions_walk, Colors.green),
+                      const SizedBox(width: 12),
+                      _activityButton('식사 준비', Icons.restaurant, Colors.orange),
                     ],
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(height: 28),
+
+            // 등록된 일정 리스트
+            const Text('등록된 일정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 12),
+            _buildScheduleItem(context, '산책 보조', '오후 3:00', Icons.directions_walk, Colors.green),
+            _buildScheduleItem(context, '식사 준비', '오후 5:30', Icons.restaurant, Colors.orange),
           ],
+        ),
+      ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Colors.pink, Colors.purple],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.pink.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            _showAddScheduleDialog(context);
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text('일정 등록', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
     );
   }
 
-  Widget _activityButton(String text) { // 활동 버튼 위젯
+  static Widget _activityButton(String text, IconData icon, Color color) {
     return Expanded(
-      child: ElevatedButton(
+      child: ElevatedButton.icon(
         onPressed: () {},
+        icon: Icon(icon, color: color, size: 20),
+        label: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pink[100], // 버튼 배경
-          foregroundColor: Colors.black, // 버튼 글씨
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), // 둥근 테두리
+          backgroundColor: color.withOpacity(0.12),
+          foregroundColor: Colors.black,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        child: Text(text), // 버튼 텍스트
+      ),
+    );
+  }
+
+  static Widget _buildScheduleItem(BuildContext context, String title, String time, IconData icon, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(time, style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.grey),
+            onPressed: () {
+              _showEditScheduleDialog(context, title, time);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              // 삭제 로직
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  static void _showAddScheduleDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.pink.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.pink.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '일정 등록',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: '일정 제목',
+                  hintText: '일정 제목을 입력하세요',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.title, color: Colors.pink),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: '시간',
+                  hintText: '시간을 입력하세요',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.access_time, color: Colors.pink),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text('알림 받기'),
+                  Switch(value: true, onChanged: (v) {}),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('취소', style: TextStyle(color: Colors.grey)),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 등록 로직
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('등록', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _showEditScheduleDialog(BuildContext context, String title, String time) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.pink.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.pink.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '일정 수정',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: '일정 제목',
+                  hintText: '일정 제목을 입력하세요',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.title, color: Colors.pink),
+                ),
+                controller: TextEditingController(text: title),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: '시간',
+                  hintText: '시간을 입력하세요',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.access_time, color: Colors.pink),
+                ),
+                controller: TextEditingController(text: time),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text('알림 받기'),
+                  Switch(value: true, onChanged: (v) {}),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('취소', style: TextStyle(color: Colors.grey)),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 수정 로직
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('수정', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
