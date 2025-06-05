@@ -24,13 +24,31 @@ class _SplashScreenState extends State<SplashScreen> { // 스플래시 화면 �
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // 전체 배경 흰색
-      body: Center(
-        child: Image.asset(
-          'assets/images/carecall_logo.png',
-          width: 180, // 로고 크기
-          height: 180,
-          fit: BoxFit.contain,
-        ),
+      body: Stack(
+        children: [
+          Center(
+            child: Image.asset(
+              'assets/images/carecall_logo.png',
+              width: 250, // 로고 크기
+              height: 250,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Text(
+              'DeepLabs.Co',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

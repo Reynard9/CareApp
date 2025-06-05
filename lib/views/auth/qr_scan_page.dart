@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,6 +20,7 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
   String? errorMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scanLineAnimation;
 
   @override
   void initState() {
@@ -26,9 +28,13 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
     _checkCameraPermission();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
     _fadeAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(_animationController);
+    _scanLineAnimation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   Future<void> _checkCameraPermission() async {
@@ -81,7 +87,7 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
       body: SafeArea(
         child: Column(
           children: [
-            // 상단 인사 영역
+            // 상단 인사 + 일러스트
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
@@ -119,23 +125,40 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${widget.name} 보호자님',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '디바이스의 QR코드를 스캔해 인증을 완료해주세요',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      letterSpacing: -0.3,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.qr_code_scanner,
+                        size: 100,
+                        color: Colors.pink[300],
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${widget.name} 보호자님',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '디바이스의 QR코드를 스캔해 \n인증을 완료해주세요',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -144,147 +167,145 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
             // QR 스캔 박스
             Expanded(
               child: Center(
-                child: Container(
-                  width: 300,
-                  height: 340,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // 글래스모피즘 효과 배경
+                      BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          width: 320,
+                          height: 360,
+                          color: Colors.white.withOpacity(0.15),
+                        ),
+                      ),
+                      Container(
+                        width: 320,
+                        height: 360,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: isCameraPermissionGranted
+                            ? Stack(
+                                children: [
+                                  QRView(
+                                    key: qrKey,
+                                    onQRViewCreated: _onQRViewCreated,
+                                    overlay: QrScannerOverlayShape(
+                                      borderColor: Colors.pink[300]!,
+                                      borderRadius: 18,
+                                      borderLength: 40,
+                                      borderWidth: 8,
+                                      cutOutSize: 240,
+                                    ),
+                                  ),
+                                  // 컬러 애니메이션 스캔 라인
+                                  AnimatedBuilder(
+                                    animation: _scanLineAnimation,
+                                    builder: (context, child) {
+                                      return Positioned(
+                                        top: 60 + 180 * _scanLineAnimation.value,
+                                        left: 40,
+                                        right: 40,
+                                        child: Container(
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(2),
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.pink[300]!,
+                                                Colors.purple[200]!,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.camera_alt, size: 48, color: Colors.grey),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      errorMessage ?? '카메라 권한이 필요합니다.',
+                                      style: const TextStyle(color: Colors.black54, fontSize: 16),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: () => openAppSettings(),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.pink[200],
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      child: const Text('설정에서 권한 허용하기', style: TextStyle(color: Colors.white)),
+                                    ),
+                                  ],
+                                ),
+                              ),
                       ),
                     ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: isCameraPermissionGranted
-                        ? Stack(
-                            children: [
-                              QRView(
-                                key: qrKey,
-                                onQRViewCreated: _onQRViewCreated,
-                                overlay: QrScannerOverlayShape(
-                                  borderColor: Colors.pink[100]!,
-                                  borderRadius: 16,
-                                  borderLength: 40,
-                                  borderWidth: 8,
-                                  cutOutSize: 240,
-                                ),
-                              ),
-                              Positioned(
-                                top: 16,
-                                right: 16,
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.qr_code_scanner,
-                                    color: Colors.pink[100],
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                              // 스캔 가이드 애니메이션
-                              Center(
-                                child: FadeTransition(
-                                  opacity: _fadeAnimation,
-                                  child: Container(
-                                    width: 240,
-                                    height: 240,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Colors.pink[100]!.withOpacity(0.3),
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.camera_alt,
-                                  size: 48,
-                                  color: Colors.pink[100],
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _checkCameraPermission,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.pink[100],
-                                    foregroundColor: Colors.black,
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    '카메라 권한 요청',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            // 하단 안내 문구와 건너뛰기 버튼
+            // 하단 안내
             Padding(
-              padding: const EdgeInsets.only(bottom: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.pink[50],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text(
-                      'QR코드를 인증하고 디바이스를 연결해주세요',
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
+                  const Text(
+                    'QR코드가 인식되지 않나요?',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const MainWrapper()),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Text(
-                      '건너뛰기',
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 14,
-                        decoration: TextDecoration.underline,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '빛 반사, 카메라 초점, QR코드 손상 여부를 확인해 주세요.\n문제가 계속된다면 고객센터로 문의해 주세요.',
+                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                    textAlign: TextAlign.center,
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 건너뛰기 버튼
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MainWrapper()),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: const Text(
+                  '건너뛰기',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                    letterSpacing: -0.3,
+                  ),
+                ),
               ),
             ),
           ],

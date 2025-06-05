@@ -28,10 +28,10 @@
         <activity
             android:name="com.kakao.sdk.flutter.AuthCodeHandlerActivity"
             android:exported="true">
-            <intent-filter android:label="flutter_web_auth">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="kakao0b693528447d1f9ef45a59bcda8b7ab5" android:host="oauth"/>
             </intent-filter>
         </activity>

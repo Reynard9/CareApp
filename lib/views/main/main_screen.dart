@@ -7,6 +7,9 @@ import 'package:careapp5_15/views/chat/chat_history_page.dart'; // 챗봇 이력
 import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데이터 페이지 임포트
 import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
+import 'package:careapp5_15/services/api_service.dart';
+import 'dart:async';
+import 'package:careapp5_15/views/status/elder_status_page.dart';
 
 class MainScreen extends StatefulWidget { // 메인 홈 화면 위젯
   const MainScreen({super.key});
@@ -18,11 +21,23 @@ class MainScreen extends StatefulWidget { // 메인 홈 화면 위젯
 class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
   String _currentDateTime = ''; // 현재 날짜/시간 문자열
 
+  // 센서 데이터 상태 변수 추가
+  double currentNoise = 0.0;
+  double currentAirQuality = 0.0;
+  double currentTemp = 0.0;
+  double currentHumidity = 0.0;
+  bool isSensorLoading = true;
+
   @override
   void initState() {
     super.initState();
     _updateDateTime(); // 날짜/시간 초기화
     Future.delayed(const Duration(minutes: 1), _updateDateTime); // 1분마다 갱신
+    _fetchSensorData();
+    // 30초마다 센서 데이터 갱신
+    Timer.periodic(const Duration(seconds: 30), (timer) {
+      _fetchSensorData();
+    });
   }
 
   void _updateDateTime() { // 현재 날짜/시간을 포맷팅해서 저장
@@ -31,6 +46,104 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
     setState(() {
       _currentDateTime = formatter.format(now);
     });
+  }
+
+  Future<void> _fetchSensorData() async {
+    try {
+      const deviceId = 1;
+      print('디바이스 ID: $deviceId로 센서 데이터 요청 중...');
+      final sensors = await ApiService.getSensorList(deviceId);
+      
+      if (sensors.isEmpty) {
+        print('받은 센서 데이터가 없습니다.');
+        setState(() {
+          isSensorLoading = false;
+        });
+        return;
+      }
+
+      print('\n=== 센서 데이터 상세 정보 ===');
+      for (var sensor in sensors) {
+        print('센서 정보:');
+        print('- 타입: ${sensor.type}');
+        print('- 이름: ${sensor.name}');
+        print('- 데이터 이름: ${sensor.dataName}');
+        print('- 데이터 단위: ${sensor.dataUnit}');
+        print('- 데이터 개수: ${sensor.data.length}');
+        if (sensor.data.isNotEmpty) {
+          print('- 첫 번째 데이터: ${sensor.data.first.data}');
+        }
+        print('------------------------');
+      }
+      print('========================\n');
+      
+      if (!mounted) return;
+      
+      setState(() {
+        for (var sensor in sensors) {
+          if (sensor.data.isEmpty) {
+            print('${sensor.type} 센서에 데이터가 없습니다.');
+            continue;
+          }
+
+          final rawData = sensor.data.first.data;
+          print('${sensor.type} 센서 원본 데이터: $rawData');
+
+          // 센서 타입에 따라 적절한 데이터 처리
+          final sensorType = sensor.type.toLowerCase();
+          print('처리할 센서 타입: $sensorType');
+
+          if (sensorType.contains('temp') || sensorType.contains('temperature')) {
+            currentTemp = _parseSensorData(rawData);
+            print('온도 데이터 처리 결과: $currentTemp');
+          } else if (sensorType.contains('humid') || sensorType.contains('humidity')) {
+            currentHumidity = _parseSensorData(rawData);
+            print('습도 데이터 처리 결과: $currentHumidity');
+          } else if (sensorType.contains('sound') || sensorType.contains('noise')) {
+            currentNoise = _parseSensorData(rawData);
+            print('소음 데이터 처리 결과: $currentNoise');
+          } else if (sensorType.contains('air') || sensorType.contains('quality')) {
+            currentAirQuality = _parseSensorData(rawData);
+            print('공기질 데이터 처리 결과: $currentAirQuality');
+          } else {
+            print('알 수 없는 센서 타입: ${sensor.type}');
+          }
+        }
+        isSensorLoading = false;
+      });
+    } catch (e, stackTrace) {
+      print('센서 데이터 가져오기 실패: $e');
+      print('스택 트레이스: $stackTrace');
+      if (!mounted) return;
+      setState(() {
+        isSensorLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('센서 데이터를 불러오는데 실패했습니다.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // 센서 데이터 파싱 헬퍼 함수
+  double _parseSensorData(String data) {
+    try {
+      print('파싱 시도하는 데이터: $data');
+      // 쉼표나 공백으로 구분된 숫자 처리
+      final cleanData = data.replaceAll(RegExp(r'[^\d.-]'), '');
+      print('정제된 데이터: $cleanData');
+      final value = double.tryParse(cleanData);
+      if (value != null) {
+        print('데이터 파싱 성공: $value');
+        return value;
+      }
+      print('데이터 파싱 실패: null 반환');
+    } catch (e) {
+      print('데이터 파싱 중 예외 발생: $e');
+    }
+    return 0.0;
   }
 
   @override
@@ -90,7 +203,15 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                     const Text('무엇을 도와드릴까요?', style: TextStyle(fontSize: 17)), // 안내 문구
                     const SizedBox(height: 12),
                     _statusGroupBox([
-                      _statusRow(Icons.health_and_safety, '현재 김세종님은 편안하신 상태에요!'),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ElderStatusPage()),
+                          );
+                        },
+                        child: _statusRow(Icons.health_and_safety, '현재 김세종님은 편안하신 상태에요!'),
+                      ),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -118,10 +239,6 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                           final now = DateTime.now();
                           final formatter = DateFormat('yyyy년 M월 d일(E) a h:mm', 'ko_KR');
                           final nowStr = formatter.format(now);
-                          final currentNoise = 48.0; // 예시값, 실제 데이터로 교체 가능
-                          final currentAirQuality = 32.0; // 공기질 예시값
-                          final currentTemp = 18.0; // 온도 예시값
-                          final currentHumidity = 35.0; // 습도 예시값
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -140,7 +257,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                                 icon: Icons.align_vertical_bottom,
                                 iconColor: Colors.pink[200]!,
                                 title: '공기질 양호',
-                                subtitle: '${currentAirQuality.toStringAsFixed(1)} ㎍/㎥',
+                                subtitle: isSensorLoading ? '로딩중...' : '${currentAirQuality.toStringAsFixed(1)} ㎍/㎥',
                                 bgColor: Colors.pink[50]!,
                               ),
                               const SizedBox(height: 10),
@@ -148,7 +265,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                                 icon: Icons.volume_up,
                                 iconColor: Colors.blue[400]!,
                                 title: '소음 발생 없음',
-                                subtitle: '${currentNoise.toStringAsFixed(1)} dB',
+                                subtitle: isSensorLoading ? '로딩중...' : '${currentNoise.toStringAsFixed(1)} dB',
                                 bgColor: Colors.blue[50]!,
                               ),
                               const SizedBox(height: 10),
@@ -156,7 +273,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                                 icon: Icons.device_thermostat,
                                 iconColor: Colors.orange[400]!,
                                 title: '온도',
-                                subtitle: '${currentTemp.toStringAsFixed(1)}°C',
+                                subtitle: isSensorLoading ? '로딩중...' : '${currentTemp.toStringAsFixed(1)}°C',
                                 bgColor: Colors.orange[50]!,
                               ),
                               const SizedBox(height: 10),
@@ -164,7 +281,7 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                                 icon: Icons.water_drop,
                                 iconColor: Colors.blue[300]!,
                                 title: '습도',
-                                subtitle: '${currentHumidity.toStringAsFixed(1)}%',
+                                subtitle: isSensorLoading ? '로딩중...' : '${currentHumidity.toStringAsFixed(1)}%',
                                 bgColor: Colors.blue[50]!,
                               ),
                             ],

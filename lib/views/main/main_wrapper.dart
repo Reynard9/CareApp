@@ -16,8 +16,8 @@ class _MainWrapperState extends State<MainWrapper> { // 네비게이션 상태
 
   final List<Widget> _pages = const [
     MainScreen(),
-    SensorDataPage(),
-    ChatHistoryPage(),
+    SensorDataPage(deviceId: 1),
+    ChatHistoryPage(deviceId: 1),
     MenuPage(),
   ];
 

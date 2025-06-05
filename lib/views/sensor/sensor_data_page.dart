@@ -7,11 +7,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:careapp5_15/services/api_service.dart';
 
 /// 센서 데이터를 표시하는 페이지 위젯
 /// 온도, 습도, 소음 데이터를 그래프로 시각화하고 실시간으로 모니터링
 class SensorDataPage extends StatefulWidget {
-  const SensorDataPage({super.key});
+  final int deviceId;
+  
+  const SensorDataPage({super.key, required this.deviceId});
 
   @override
   State<SensorDataPage> createState() => _SensorDataPageState();
@@ -23,15 +26,15 @@ class _SensorDataPageState extends State<SensorDataPage> {
   // 주기적인 데이터 갱신을 위한 타이머
   Timer? _timer;
   
-  // 현재 센서 데이터 값들 (더미 데이터로 초기화)
+  // 현재 센서 데이터 값들
   double temperature = 24.0;  // 온도 (섭씨)
   double humidity = 45.0;     // 습도 (%)
   double soundIn = 35.0;      // 소음 (dB)
   
-  // 최근 10개의 센서 데이터를 저장하는 리스트 (더미 데이터로 초기화)
-  List<double> temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];
-  List<double> humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];
-  List<double> soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];
+  // 최근 10개의 센서 데이터를 저장하는 리스트
+  List<double> temperatureData = [];
+  List<double> humidityData = [];
+  List<double> soundData = [];
   
   // 더미 데이터 사용 여부 플래그
   bool isUsingDummyData = false;
@@ -39,38 +42,57 @@ class _SensorDataPageState extends State<SensorDataPage> {
   /// API에서 센서 데이터를 가져오는 메서드
   Future<void> fetchSensorData() async {
     try {
-      // 환경 변수에서 API URL 가져오기
-      final url = Uri.parse(dotenv.env['API_SENSOR_URL']!);
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        // 응답 데이터 파싱
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        print('Sensor Data: $data');
-
-        setState(() {
-          // 센서 데이터 업데이트
-          temperature = (data[0]['data']['temperature']['in'] as num).toDouble();
-          humidity = (data[0]['data']['humidty']['in'] as num).toDouble();
-          soundIn = (data[0]['data']['sound_in'] as num).toDouble();
-
-          // 데이터 리스트 관리 (최대 10개 유지)
-          if (temperatureData.length > 10) {
-            temperatureData.removeAt(0);
-            humidityData.removeAt(0);
-            soundData.removeAt(0);
+      final sensors = await ApiService.getSensorList(widget.deviceId);
+      
+      setState(() {
+        // 각 센서 데이터 처리
+        for (var sensor in sensors) {
+          // 데이터가 없는 경우 "데이터 없음" 표시
+          if (sensor.data.isEmpty) {
+            switch (sensor.type) {
+              case 'temperature':
+                temperature = 0;
+                temperatureData = [];
+                break;
+              case 'humidity':
+                humidity = 0;
+                humidityData = [];
+                break;
+              case 'sound':
+                soundIn = 0;
+                soundData = [];
+                break;
+            }
+            continue;
           }
           
-          // 새로운 데이터 추가
-          temperatureData.add(temperature);
-          humidityData.add(humidity);
-          soundData.add(soundIn);
-          isUsingDummyData = false;
-        });
-      } else {
-        print('Failed to fetch data: ${response.statusCode}');
-        _useDummyData();
-      }
+          // 최신 데이터로 현재값 업데이트
+          final latestData = double.parse(sensor.data.first.data);
+          
+          switch (sensor.type) {
+            case 'temperature':
+              temperature = latestData;
+              temperatureData = sensor.data
+                  .map((d) => double.parse(d.data))
+                  .toList();
+              break;
+            case 'humidity':
+              humidity = latestData;
+              humidityData = sensor.data
+                  .map((d) => double.parse(d.data))
+                  .toList();
+              break;
+            case 'sound':
+              soundIn = latestData;
+              soundData = sensor.data
+                  .map((d) => double.parse(d.data))
+                  .toList();
+              break;
+          }
+        }
+        
+        isUsingDummyData = false;
+      });
     } catch (e) {
       print('Error fetching sensor data: $e');
       _useDummyData();
@@ -96,23 +118,60 @@ class _SensorDataPageState extends State<SensorDataPage> {
     }
   }
 
- /// 주기적으로 센서 데이터를 갱신하는 타이머 시작
+  /// 주기적으로 센서 데이터를 갱신하는 타이머 시작
   void _startPolling() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      fetchSensorData();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      try {
+        // API에서 데이터 조회
+        await fetchSensorData();
+      } catch (e) {
+        print('Error in polling: $e');
+      }
     });
   }
 
   @override
   void initState() {
     super.initState();
-    fetchSensorData();
+    _initializeSensorData();
     _startPolling();
+  }
+
+  Future<void> _initializeSensorData() async {
+    try {
+      // 초기 데이터 로드
+      await fetchSensorData();
+    } catch (e) {
+      print('Error initializing sensor data: $e');
+      _useDummyData();
+    }
+  }
+
+  void _generateDummyData() {
+    setState(() {
+      // 온도 데이터 생성 (22-26도 범위)
+      temperature = 24.0 + (DateTime.now().millisecondsSinceEpoch % 400) / 100;
+      temperatureData = List.generate(10, (i) => 24.0 + (i % 4) - 1.5);
+
+      // 습도 데이터 생성 (40-50% 범위)
+      humidity = 45.0 + (DateTime.now().millisecondsSinceEpoch % 1000) / 100;
+      humidityData = List.generate(10, (i) => 45.0 + (i % 10) - 5);
+
+      // 소음 데이터 생성 (30-45dB 범위)
+      soundIn = 35.0 + (DateTime.now().millisecondsSinceEpoch % 1500) / 100;
+      soundData = List.generate(10, (i) => 35.0 + (i % 15) - 7.5);
+
+      isUsingDummyData = false;
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    // 센서 데이터 수집 중지
+    ApiService.stopSensorDataCollection(widget.deviceId).catchError((e) {
+      print('Error stopping sensor data collection: $e');
+    });
     super.dispose();
   }
 
@@ -265,22 +324,37 @@ class _SensorDataPageState extends State<SensorDataPage> {
   /// @param status - 현재 상태 설명 (예: '쾌적', '다소 건조', '높은 수준')
   /// @param color - 카드의 테마 색상 (예: 빨간색, 파란색, 주황색)
   Widget _sensorCard(IconData icon, String label, String value, String status, Color color) {
-    return Container(                                                     // 카드의 외부 컨테이너
-      padding: const EdgeInsets.symmetric(vertical: 20),                  // 상하 20픽셀의 내부 여백
-      decoration: BoxDecoration(                                          // 카드의 시각적 스타일
-        color: Colors.white,                                              // 흰색 배경
-        borderRadius: BorderRadius.circular(18),                          // 18픽셀의 둥근 모서리
+    // 데이터가 없는 경우 "데이터 없음" 표시
+    final displayValue = value == '0.0°C' || value == '0.0%' || value == '0.0dB' 
+        ? '데이터 없음' 
+        : value;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Column(                                                     // 세로 방향으로 요소들을 배치
-        mainAxisAlignment: MainAxisAlignment.center,                      // 세로 중앙 정렬
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 28),                            // 센서 아이콘 (28픽셀 크기)
-          const SizedBox(height: 8),                                      // 8픽셀 간격
-          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87)),  // 센서 이름 (15픽셀 크기)
-          const SizedBox(height: 8),                                      // 8픽셀 간격
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),  // 측정값 (22픽셀 크기, 굵게)
-          const SizedBox(height: 4),                                      // 4픽셀 간격
-          Text(status, style: const TextStyle(fontSize: 13, color: Colors.grey)),  // 상태 텍스트 (13픽셀 크기, 회색)
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87)),
+          const SizedBox(height: 8),
+          Text(
+            displayValue,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: displayValue == '데이터 없음' ? Colors.grey : Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            displayValue == '데이터 없음' ? '' : status,
+            style: const TextStyle(fontSize: 13, color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -289,6 +363,44 @@ class _SensorDataPageState extends State<SensorDataPage> {
   /// 습도 게이지 카드 위젯 생성
   /// 원형 게이지로 현재 습도를 시각화
   Widget _humidityGaugeCard(double value) {
+    // 데이터가 없는 경우 "데이터 없음" 표시
+    if (value == 0) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.water_drop, color: Colors.blue),
+                SizedBox(width: 8),
+                Text('습도', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 140,
+              child: Center(
+                child: Text(
+                  '데이터 없음',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(20),
@@ -345,14 +457,6 @@ class _SensorDataPageState extends State<SensorDataPage> {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('구조', style: TextStyle(color: Colors.grey)),
-              Text('하이', style: TextStyle(color: Colors.grey)),
-            ],
           ),
         ],
       ),
@@ -416,6 +520,43 @@ class _SensorDataPageState extends State<SensorDataPage> {
   /// 온도 게이지 카드 위젯 생성
   /// 수직 게이지로 현재 온도를 시각화
   Widget _thermometerGaugeCard(double value, double min, double max) {
+    // 데이터가 없는 경우 "데이터 없음" 표시
+    if (value == 0) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.device_thermostat, color: Colors.red),
+                SizedBox(width: 8),
+                Text('온도', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 180,
+              child: Center(
+                child: Text(
+                  '데이터 없음',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -427,55 +568,82 @@ class _SensorDataPageState extends State<SensorDataPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.device_thermostat, color: Colors.red),
+              Icon(Icons.device_thermostat, color: Colors.red[400]),
               const SizedBox(width: 8),
-              const Text('온도', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('온도', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const Spacer(),
-              Text('${value.toStringAsFixed(1)}°C', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              Text(
+                '${value.toStringAsFixed(1)}°C',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[400], fontSize: 18),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Center(
             child: SizedBox(
-              width: 60,
-              height: 180,
-              child: SfLinearGauge(
-                minimum: min,
-                maximum: max,
-                orientation: LinearGaugeOrientation.vertical,
-                showTicks: true,
-                showLabels: true,
-                axisTrackStyle: const LinearAxisTrackStyle(
-                  thickness: 18,
-                  edgeStyle: LinearEdgeStyle.bothCurve,
-                  color: Color(0xFFF5B5B5),
-                  borderColor: Colors.red,
-                  borderWidth: 2,
-                ),
-                barPointers: [
-                  LinearBarPointer(
-                    value: value,
-                    thickness: 18,
-                    edgeStyle: LinearEdgeStyle.bothCurve,
-                    color: Colors.redAccent,
-                  ),
-                ],
-                markerPointers: [
-                  LinearWidgetPointer(
-                    value: value,
-                    position: LinearElementPosition.cross,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+              width: 80,
+              height: 200,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // 게이지 바(그라데이션)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _ThermometerBarPainter(
+                        min: min,
+                        max: max,
+                        value: value,
                       ),
-                      child: Center(
-                        child: Text(
-                          '${value.toStringAsFixed(1)}',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                  // 눈금 및 숫자
+                  Positioned.fill(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(5, (i) {
+                        double tickValue = max - (max - min) * i / 4;
+                        return Row(
+                          children: [
+                            const SizedBox(width: 60),
+                            Text(
+                              tickValue.toInt().toString(),
+                              style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ),
+                  // 현재 온도 마커
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 200 * (1 - (value - min) / (max - min)) - 18,
+                    child: Center(
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Colors.red[300]!, Colors.red[700]!],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: Center(
+                          child: Text(
+                            value.toStringAsFixed(1),
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
                         ),
                       ),
                     ),
@@ -521,6 +689,43 @@ class _SensorDataPageState extends State<SensorDataPage> {
   /// 소음 라인 차트 위젯 생성
   /// 시간에 따른 소음 데이터를 라인 차트로 표시하고 임계값을 기준으로 색상 구분
   Widget _noiseLineChart(List<double> data, double threshold, double currentValue) {
+    // 데이터가 없는 경우 "데이터 없음" 표시
+    if (data.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.volume_up, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('소음', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 180,
+              child: Center(
+                child: Text(
+                  '데이터 없음',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // 데이터 포인트 생성
     final spots = List.generate(data.length, (i) => FlSpot(i.toDouble(), data[i]));
     
@@ -642,4 +847,40 @@ class _SensorDataPageState extends State<SensorDataPage> {
       ),
     );
   }
+}
+
+// 온도 게이지 바 그리기용 커스텀 페인터
+class _ThermometerBarPainter extends CustomPainter {
+  final double min;
+  final double max;
+  final double value;
+  _ThermometerBarPainter({required this.min, required this.max, required this.value});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final barRect = Rect.fromLTWH(size.width / 2 - 14, 0, 28, size.height);
+    final radius = Radius.circular(14);
+    // 전체 바(연한 빨강)
+    final bgPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [Colors.red[100]!, Colors.red[200]!],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(barRect);
+    canvas.drawRRect(RRect.fromRectAndRadius(barRect, radius), bgPaint);
+
+    // 값에 해당하는 바(진한 빨강)
+    final valueHeight = ((value - min) / (max - min)).clamp(0.0, 1.0) * size.height;
+    final valueRect = Rect.fromLTWH(size.width / 2 - 14, size.height - valueHeight, 28, valueHeight);
+    final valuePaint = Paint()
+      ..shader = LinearGradient(
+        colors: [Colors.red[400]!, Colors.red[700]!],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(valueRect);
+    canvas.drawRRect(RRect.fromRectAndRadius(valueRect, radius), valuePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

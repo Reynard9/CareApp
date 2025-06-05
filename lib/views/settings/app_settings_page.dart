@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
+import 'package:careapp5_15/views/settings/terms_page.dart';
+import 'package:careapp5_15/views/settings/privacy_policy_page.dart';
 
 class AppSettingsPage extends StatefulWidget {
   const AppSettingsPage({super.key});
@@ -169,7 +171,10 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                 title: '이용약관',
                 subtitle: '서비스 이용 약관을 확인합니다',
                 onTap: () {
-                  // 이용약관 페이지로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TermsPage()),
+                  );
                 },
               ),
               _buildSettingItem(
@@ -177,7 +182,10 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                 title: '개인정보 처리방침',
                 subtitle: '개인정보 수집 및 이용에 대한 안내',
                 onTap: () {
-                  // 개인정보 처리방침 페이지로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                  );
                 },
               ),
             ],
