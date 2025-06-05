@@ -81,6 +81,7 @@ app.*.map.json
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # API documentation and test files
 assets/api/ 
