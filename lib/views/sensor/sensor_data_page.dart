@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// 센서 데이터를 표시하는 페이지 위젯
-/// 온도, 습도, 소음 데이터를 그래프로 시각화
+/// 온도, 습도, 소음 데이터를 그래프로 시각화하고 실시간으로 모니터링
 class SensorDataPage extends StatefulWidget {
   const SensorDataPage({super.key});
 
@@ -18,35 +18,50 @@ class SensorDataPage extends StatefulWidget {
 }
 
 class _SensorDataPageState extends State<SensorDataPage> {
+  // 데이터 로딩을 위한 Future 객체
   late Future<void> _loadDataFuture;
+  // 주기적인 데이터 갱신을 위한 타이머
   Timer? _timer;
-  double temperature = 24.0;  // 기본 더미 데이터
-  double humidity = 45.0;     // 기본 더미 데이터
-  double soundIn = 35.0;      // 기본 더미 데이터
-  List<double> temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];  // 더미 데이터
-  List<double> humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];     // 더미 데이터
-  List<double> soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];        // 더미 데이터
+  
+  // 현재 센서 데이터 값들 (더미 데이터로 초기화)
+  double temperature = 24.0;  // 온도 (섭씨)
+  double humidity = 45.0;     // 습도 (%)
+  double soundIn = 35.0;      // 소음 (dB)
+  
+  // 최근 10개의 센서 데이터를 저장하는 리스트 (더미 데이터로 초기화)
+  List<double> temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];
+  List<double> humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];
+  List<double> soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];
+  
+  // 더미 데이터 사용 여부 플래그
   bool isUsingDummyData = false;
 
+  /// API에서 센서 데이터를 가져오는 메서드
   Future<void> fetchSensorData() async {
     try {
+      // 환경 변수에서 API URL 가져오기
       final url = Uri.parse(dotenv.env['API_SENSOR_URL']!);
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
+        // 응답 데이터 파싱
         final data = json.decode(utf8.decode(response.bodyBytes));
         print('Sensor Data: $data');
 
         setState(() {
+          // 센서 데이터 업데이트
           temperature = (data[0]['data']['temperature']['in'] as num).toDouble();
           humidity = (data[0]['data']['humidty']['in'] as num).toDouble();
           soundIn = (data[0]['data']['sound_in'] as num).toDouble();
 
+          // 데이터 리스트 관리 (최대 10개 유지)
           if (temperatureData.length > 10) {
             temperatureData.removeAt(0);
             humidityData.removeAt(0);
             soundData.removeAt(0);
           }
+          
+          // 새로운 데이터 추가
           temperatureData.add(temperature);
           humidityData.add(humidity);
           soundData.add(soundIn);
@@ -62,6 +77,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
     }
   }
 
+  /// API 호출 실패 시 더미 데이터를 사용하는 메서드
   void _useDummyData() {
     if (!isUsingDummyData) {
       setState(() {
@@ -80,6 +96,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
     }
   }
 
+ /// 주기적으로 센서 데이터를 갱신하는 타이머 시작
   void _startPolling() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       fetchSensorData();
@@ -139,6 +156,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+                  // 더미 데이터 사용 시 경고 메시지
               if (isUsingDummyData)
                 Container(
                   margin: const EdgeInsets.only(top: 16),
@@ -161,7 +179,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
                   ),
                 ),
               const SizedBox(height: 16),
-              // 1. 상단 상태 카드
+                  
+                  // 1. 상단 상태 카드 - 실내 환경 상태 표시
               Container(
                 padding: const EdgeInsets.all(24),
                 margin: const EdgeInsets.only(bottom: 16),
@@ -182,6 +201,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                   ],
                 ),
               ),
+                  
               // 1-2. 어르신 정서 상태 카드
               Container(
                 padding: const EdgeInsets.all(24),
@@ -203,7 +223,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
                   ],
                 ),
               ),
-              // 2. 센서별 카드 3개
+                  
+                  // 2. 센서별 카드 3개 - 온도, 습도, 소음 현재값 표시
               Row(
                 children: [
                   Expanded(child: _sensorCard(Icons.thermostat, '온도', '${temperature.toStringAsFixed(1)}°C', '쾌적', Colors.red)),
@@ -214,13 +235,16 @@ class _SensorDataPageState extends State<SensorDataPage> {
                 ],
               ),
               const SizedBox(height: 20),
-              // 3. 경고 메시지
+                  
+                  // 3. 경고 메시지 - 소음 주의 표시
               const SizedBox(height: 20),
               _warningBox(),
-              // 4. 습도 게이지 카드
+                  
+                  // 4. 습도 게이지 카드 - 원형 게이지로 습도 표시
               _humidityGaugeCard(humidity),
               const SizedBox(height: 20),
-              // 5. 온도/소음 그래프 추가
+                  
+                  // 5. 온도/소음 그래프 - 온도 게이지와 소음 라인 차트
               _thermometerGaugeCard(temperature, 0, 40),
               const SizedBox(height: 16),
               _noiseLineChart(soundData, 50, soundIn),
@@ -233,30 +257,38 @@ class _SensorDataPageState extends State<SensorDataPage> {
     );
   }
 
+  /// 센서 카드 위젯 생성
+  /// 각 센서의 현재값과 상태를 표시하는 카드
+  /// @param icon - 센서 종류를 나타내는 아이콘 (예: 온도계, 물방울, 스피커)
+  /// @param label - 센서의 이름 (예: '온도', '습도', '소음')
+  /// @param value - 현재 측정값 (예: '24.5°C', '45%', '35.0dB')
+  /// @param status - 현재 상태 설명 (예: '쾌적', '다소 건조', '높은 수준')
+  /// @param color - 카드의 테마 색상 (예: 빨간색, 파란색, 주황색)
   Widget _sensorCard(IconData icon, String label, String value, String status, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+    return Container(                                                     // 카드의 외부 컨테이너
+      padding: const EdgeInsets.symmetric(vertical: 20),                  // 상하 20픽셀의 내부 여백
+      decoration: BoxDecoration(                                          // 카드의 시각적 스타일
+        color: Colors.white,                                              // 흰색 배경
+        borderRadius: BorderRadius.circular(18),                          // 18픽셀의 둥근 모서리
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(                                                     // 세로 방향으로 요소들을 배치
+        mainAxisAlignment: MainAxisAlignment.center,                      // 세로 중앙 정렬
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87)),
-          const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(status, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          Icon(icon, color: color, size: 28),                            // 센서 아이콘 (28픽셀 크기)
+          const SizedBox(height: 8),                                      // 8픽셀 간격
+          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87)),  // 센서 이름 (15픽셀 크기)
+          const SizedBox(height: 8),                                      // 8픽셀 간격
+          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),  // 측정값 (22픽셀 크기, 굵게)
+          const SizedBox(height: 4),                                      // 4픽셀 간격
+          Text(status, style: const TextStyle(fontSize: 13, color: Colors.grey)),  // 상태 텍스트 (13픽셀 크기, 회색)
         ],
       ),
     );
   }
 
+  /// 습도 게이지 카드 위젯 생성
+  /// 원형 게이지로 현재 습도를 시각화
   Widget _humidityGaugeCard(double value) {
-    // value: 0~100
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(20),
@@ -280,6 +312,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // 원형 게이지 차트
                 PieChart(
                   PieChartData(
                     startDegreeOffset: 180,
@@ -301,6 +334,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                     ],
                   ),
                 ),
+                // 중앙 값 표시
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -325,6 +359,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
     );
   }
 
+  /// 센서 라인 차트 카드 위젯 생성
+  /// 시간에 따른 센서 데이터 변화를 라인 차트로 표시
   Widget _sensorLineChartCard(String label, String unit, List<double> data, Color color) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -377,6 +413,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
     );
   }
 
+  /// 온도 게이지 카드 위젯 생성
+  /// 수직 게이지로 현재 온도를 시각화
   Widget _thermometerGaugeCard(double value, double min, double max) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -451,6 +489,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
     );
   }
 
+  /// 경고 메시지 박스 위젯 생성
+  /// 소음 수준이 높을 때 경고 메시지 표시
   Widget _warningBox() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -478,11 +518,16 @@ class _SensorDataPageState extends State<SensorDataPage> {
     );
   }
 
+  /// 소음 라인 차트 위젯 생성
+  /// 시간에 따른 소음 데이터를 라인 차트로 표시하고 임계값을 기준으로 색상 구분
   Widget _noiseLineChart(List<double> data, double threshold, double currentValue) {
+    // 데이터 포인트 생성
     final spots = List.generate(data.length, (i) => FlSpot(i.toDouble(), data[i]));
-    // 파란색 구간과 빨간색 구간 분리
+    
+    // 임계값을 기준으로 파란색(정상)과 빨간색(주의) 구간 분리
     final blueSpots = <FlSpot>[];
     final redSpots = <FlSpot>[];
+    
     for (var i = 0; i < spots.length; i++) {
       if (spots[i].y <= threshold) {
         blueSpots.add(spots[i]);
@@ -499,6 +544,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
         redSpots.add(spots[i]);
       }
     }
+    
     // 그래프 위젯
     return Container(
       padding: const EdgeInsets.all(20),
@@ -546,6 +592,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                   ),
                   borderData: FlBorderData(show: false),
                   lineBarsData: [
+                    // 정상 구간 (파란색)
                     if (blueSpots.isNotEmpty)
                       LineChartBarData(
                         spots: blueSpots,
@@ -558,6 +605,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                         ),
                         dotData: FlDotData(show: false),
                       ),
+                    // 주의 구간 (빨간색)
                     if (redSpots.isNotEmpty)
                       LineChartBarData(
                         spots: redSpots,

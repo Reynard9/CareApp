@@ -6,6 +6,7 @@ import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데�
 import 'package:careapp5_15/views/care_call/care_call_schedule_page.dart'; // 정기 안부 케어콜 설정 페이지 임포트
 import 'package:careapp5_15/views/settings/app_settings_page.dart'; // 앱 설정 페이지 임포트
 import 'package:careapp5_15/views/settings/notification_settings_page.dart'; // 알림 설정 페이지 임포트
+import 'package:careapp5_15/views/settings/sensor_sensitivity_page.dart'; // 센서 감도 설정 페이지 임포트
 
 class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
   const MenuPage({super.key});
@@ -37,7 +38,12 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
         'title': '센서 감도 확인 및 설정',
         'subtitle': '센서 감도 조정 및 상태 확인',
         'color': const Color(0xFFFFD93D),
-        'onTap': () {},
+        'onTap': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SensorSensitivityPage()),
+          );
+        },
       },
       {
         'icon': Icons.calendar_today,

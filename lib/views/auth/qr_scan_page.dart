@@ -12,16 +12,23 @@ class QRScanPage extends StatefulWidget {
   State<QRScanPage> createState() => _QRScanPageState();
 }
 
-class _QRScanPageState extends State<QRScanPage> {
+class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateMixin {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   bool isCameraPermissionGranted = false;
   String? errorMessage;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _checkCameraPermission();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _fadeAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(_animationController);
   }
 
   Future<void> _checkCameraPermission() async {
@@ -45,6 +52,7 @@ class _QRScanPageState extends State<QRScanPage> {
   @override
   void dispose() {
     controller?.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -182,6 +190,23 @@ class _QRScanPageState extends State<QRScanPage> {
                                   ),
                                 ),
                               ),
+                              // 스캔 가이드 애니메이션
+                              Center(
+                                child: FadeTransition(
+                                  opacity: _fadeAnimation,
+                                  child: Container(
+                                    width: 240,
+                                    height: 240,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.pink[100]!.withOpacity(0.3),
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           )
                         : Center(
@@ -252,7 +277,7 @@ class _QRScanPageState extends State<QRScanPage> {
                     child: Text(
                       '건너뛰기',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: Colors.black87,
                         fontSize: 14,
                         decoration: TextDecoration.underline,
                         letterSpacing: -0.3,

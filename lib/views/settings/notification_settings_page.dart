@@ -9,10 +9,11 @@ class NotificationSettingsPage extends StatefulWidget {
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   bool _isAllNotificationsEnabled = true;
-  bool _isCareCallEnabled = true;
-  bool _isHealthReportEnabled = true;
-  bool _isSensorAlertEnabled = true;
+  bool _isTodoEnabled = true;
   bool _isScheduleEnabled = true;
+  bool _isDisasterEnabled = true;
+  bool _isSensorEnabled = true;
+  bool _isCareCallEnabled = true;
   bool _isVibrationEnabled = true;
   bool _isSoundEnabled = true;
 
@@ -54,14 +55,16 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       _isAllNotificationsEnabled = value;
                       if (!value) {
                         _isCareCallEnabled = false;
-                        _isHealthReportEnabled = false;
-                        _isSensorAlertEnabled = false;
+                        _isTodoEnabled = false;
                         _isScheduleEnabled = false;
+                        _isDisasterEnabled = false;
+                        _isSensorEnabled = false;
                       } else {
                         _isCareCallEnabled = true;
-                        _isHealthReportEnabled = true;
-                        _isSensorAlertEnabled = true;
+                        _isTodoEnabled = true;
                         _isScheduleEnabled = true;
+                        _isDisasterEnabled = true;
+                        _isSensorEnabled = true;
                       }
                     });
                   },
@@ -74,47 +77,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             title: '알림 유형',
             children: [
               _buildSettingItem(
-                icon: Icons.phone_in_talk,
-                title: '케어콜 알림',
-                subtitle: '정기 안부 케어콜 관련 알림',
+                icon: Icons.check_circle_outline,
+                title: '할 일 알림',
+                subtitle: '할 일 예정 및 완료 알림',
                 trailing: _buildCustomSwitch(
-                  value: _isCareCallEnabled,
+                  value: _isTodoEnabled,
                   onChanged: _isAllNotificationsEnabled
                       ? (value) {
                           setState(() {
-                            _isCareCallEnabled = value;
-                          });
-                        }
-                      : null,
-                ),
-              ),
-              _buildDivider(),
-              _buildSettingItem(
-                icon: Icons.insert_chart,
-                title: '건강 리포트 알림',
-                subtitle: '건강 상태 리포트 관련 알림',
-                trailing: _buildCustomSwitch(
-                  value: _isHealthReportEnabled,
-                  onChanged: _isAllNotificationsEnabled
-                      ? (value) {
-                          setState(() {
-                            _isHealthReportEnabled = value;
-                          });
-                        }
-                      : null,
-                ),
-              ),
-              _buildDivider(),
-              _buildSettingItem(
-                icon: Icons.sensors,
-                title: '센서 알림',
-                subtitle: '센서 이상 감지 시 알림',
-                trailing: _buildCustomSwitch(
-                  value: _isSensorAlertEnabled,
-                  onChanged: _isAllNotificationsEnabled
-                      ? (value) {
-                          setState(() {
-                            _isSensorAlertEnabled = value;
+                            _isTodoEnabled = value;
                           });
                         }
                       : null,
@@ -124,13 +95,61 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               _buildSettingItem(
                 icon: Icons.calendar_today,
                 title: '일정 알림',
-                subtitle: '요양보호사 일정 관련 알림',
+                subtitle: '일정 예정 및 완료 알림',
                 trailing: _buildCustomSwitch(
                   value: _isScheduleEnabled,
                   onChanged: _isAllNotificationsEnabled
                       ? (value) {
                           setState(() {
                             _isScheduleEnabled = value;
+                          });
+                        }
+                      : null,
+                ),
+              ),
+              _buildDivider(),
+              _buildSettingItem(
+                icon: Icons.warning_amber,
+                title: '재난문자 알림',
+                subtitle: '재난 및 안전 관련 알림',
+                trailing: _buildCustomSwitch(
+                  value: _isDisasterEnabled,
+                  onChanged: _isAllNotificationsEnabled
+                      ? (value) {
+                          setState(() {
+                            _isDisasterEnabled = value;
+                          });
+                        }
+                      : null,
+                ),
+              ),
+              _buildDivider(),
+              _buildSettingItem(
+                icon: Icons.sensors,
+                title: '센서 감지 알림',
+                subtitle: '센서 이상 감지 시 알림',
+                trailing: _buildCustomSwitch(
+                  value: _isSensorEnabled,
+                  onChanged: _isAllNotificationsEnabled
+                      ? (value) {
+                          setState(() {
+                            _isSensorEnabled = value;
+                          });
+                        }
+                      : null,
+                ),
+              ),
+              _buildDivider(),
+              _buildSettingItem(
+                icon: Icons.phone_in_talk,
+                title: '케어콜 알림',
+                subtitle: '정기 안부 케어콜 관련 알림',
+                trailing: _buildCustomSwitch(
+                  value: _isCareCallEnabled,
+                  onChanged: _isAllNotificationsEnabled
+                      ? (value) {
+                          setState(() {
+                            _isCareCallEnabled = value;
                           });
                         }
                       : null,
