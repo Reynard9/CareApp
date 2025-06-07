@@ -79,29 +79,216 @@ class Sensor {
 // 챗봇 메시지 모델
 class ChatMessage {
   final int id;
-  final String message;
-  final bool isUser;
-  final DateTime timestamp;
+  final int sessionId;
+  final int userId;
+  final int idx;
+  final String role;
+  final String content;
+  final String? emotion;
+  final bool end;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   ChatMessage({
     required this.id,
-    required this.message,
-    required this.isUser,
-    required this.timestamp,
+    required this.sessionId,
+    required this.userId,
+    required this.idx,
+    required this.role,
+    required this.content,
+    this.emotion,
+    required this.end,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       id: json['id'],
-      message: json['message'],
-      isUser: json['is_user'] ?? false,
-      timestamp: DateTime.parse(json['timestamp']),
+      sessionId: json['session_id'],
+      userId: json['user_id'],
+      idx: json['idx'],
+      role: json['role'],
+      content: json['content'],
+      emotion: json['emotion'],
+      end: json['end'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
+  }
+}
+
+// 챗봇 세션 모델
+class ChatSession {
+  final int id;
+  final int eventId;
+  final int userId;
+  final String title;
+  final String context;
+  final List<String> keywords;
+  final List<ChatMessage> chats;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ChatSession({
+    required this.id,
+    required this.eventId,
+    required this.userId,
+    required this.title,
+    required this.context,
+    required this.keywords,
+    required this.chats,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ChatSession.fromJson(Map<String, dynamic> json) {
+    return ChatSession(
+      id: json['id'],
+      eventId: json['event_id'],
+      userId: json['user_id'],
+      title: json['title'],
+      context: json['context'],
+      keywords: List<String>.from(json['keywords']),
+      chats: (json['chats'] as List).map((chat) => ChatMessage.fromJson(chat)).toList(),
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
+}
+
+class SelectionItem {
+  final String type;
+  final String displayName;
+  final bool good;
+  final bool average;
+  final bool poor;
+
+  SelectionItem({
+    required this.type,
+    required this.displayName,
+    required this.good,
+    required this.average,
+    required this.poor,
+  });
+
+  factory SelectionItem.fromJson(Map<String, dynamic> json) {
+    return SelectionItem(
+      type: json['type'],
+      displayName: json['display_name'],
+      good: json['good'],
+      average: json['average'],
+      poor: json['poor'],
+    );
+  }
+
+  String get statusValue {
+    if (good) return '양호';
+    if (average) return '보통';
+    if (poor) return '없음';
+    return '없음';
+  }
+}
+
+class DiseaseSummary {
+  final String disease;
+  final String cause;
+  final String prevention;
+  final String source;
+
+  DiseaseSummary({
+    required this.disease,
+    required this.cause,
+    required this.prevention,
+    required this.source,
+  });
+
+  factory DiseaseSummary.fromJson(Map<String, dynamic> json) {
+    return DiseaseSummary(
+      disease: json['disease'],
+      cause: json['cause'],
+      prevention: json['prevention'],
+      source: json['source'],
+    );
+  }
+}
+
+class ChatSummary {
+  final int sessionId;
+  final int userId;
+  final String type;
+  final int date;
+  final int duration;
+  final List<SelectionItem> selection;
+  final String? deviceSummary;
+  final DiseaseSummary? diseaseSummary;
+  final String? summary;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ChatSummary({
+    required this.sessionId,
+    required this.userId,
+    required this.type,
+    required this.date,
+    required this.duration,
+    required this.selection,
+    this.deviceSummary,
+    this.diseaseSummary,
+    this.summary,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ChatSummary.fromJson(Map<String, dynamic> json) {
+    return ChatSummary(
+      sessionId: json['session_id'],
+      userId: json['user_id'],
+      type: json['type'],
+      date: json['date'],
+      duration: json['duration'],
+      selection: (json['selection'] as List)
+          .map((e) => SelectionItem.fromJson(e))
+          .toList(),
+      deviceSummary: json['device_summary'],
+      diseaseSummary: json['disease_summary'] != null
+          ? DiseaseSummary.fromJson(json['disease_summary'])
+          : null,
+      summary: json['summary'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
+
+  // 카드에 표시할 값 추출 (없음이면 제외)
+  Map<String, String> get status {
+    final map = <String, String>{};
+    for (final item in selection) {
+      final value = item.statusValue;
+      if (value != '없음') {
+        map[item.displayName] = value;
+      }
+    }
+    return map;
+  }
+
+  // 분석/조언 등 텍스트 추출
+  Map<String, String> get analysis {
+    final map = <String, String>{};
+    if (summary != null) map['상담 요약'] = summary!;
+    if (deviceSummary != null) map['IoT 센서 요약'] = deviceSummary!;
+    if (diseaseSummary != null) {
+      map['질환 정보'] = diseaseSummary!.disease;
+      map['질환 원인'] = diseaseSummary!.cause;
+      map['예방 및 관리'] = diseaseSummary!.prevention;
+    }
+    return map;
   }
 }
 
 class ApiService {
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://api-deepcare.thedeeplabs.com';
+  static int get sessionId => int.tryParse(dotenv.env['SESSION_ID'] ?? '39') ?? 39;
 
   // 디바이스 토큰 획득
   static Future<String> getDeviceToken(String deviceToken) async {
@@ -183,32 +370,81 @@ class ApiService {
 
   // 센서 목록 조회
   static Future<List<Sensor>> getSensorList(int deviceId) async {
-    print('센서 데이터 요청 URL: $baseUrl/api/sensor?dependency_id=$deviceId');
+    // print('센서 데이터 요청 URL: $baseUrl/api/sensor?dependency_id=$deviceId');
     final response = await http.get(
       Uri.parse('$baseUrl/api/sensor?dependency_id=$deviceId'),
     );
 
-    print('API 응답 상태 코드: ${response.statusCode}');
+    // print('API 응답 상태 코드: ${response.statusCode}');
+    // print('API 응답 내용: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => Sensor.fromJson(json)).toList();
+    } else if (response.statusCode == 502) {
+      throw Exception('백엔드 서버 연결 오류 (502 Bad Gateway). 서버 관리자에게 문의해주세요.');
     } else {
       throw Exception('Failed to get sensor list: ${response.statusCode} - ${response.body}');
     }
   }
 
-  // 챗봇 히스토리 조회
-  static Future<List<ChatMessage>> getChatHistory(int deviceId) async {
+  // 챗봇 세션 목록 조회
+  static Future<List<ChatSession>> getChatHistory(int deviceId) async {
+    print('[CHAT] 챗봇 세션 목록 요청 URL: $baseUrl/api/chat/sessions?device_id=$deviceId');
     final response = await http.get(
-      Uri.parse('$baseUrl/api/chat/history?device_id=$deviceId'),
+      Uri.parse('$baseUrl/api/chat/sessions?device_id=$deviceId'),
     );
+
+    print('[CHAT] API 응답 상태 코드: ${response.statusCode}');
+    print('[CHAT] API 응답 내용: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => ChatMessage.fromJson(json)).toList();
+      return data.map((json) => ChatSession.fromJson(json)).toList();
+    } else if (response.statusCode == 404) {
+      throw Exception('챗봇 세션 API 엔드포인트를 찾을 수 없습니다. 백엔드 개발자에게 문의해주세요.');
     } else {
-      throw Exception('Failed to get chat history');
+      throw Exception('Failed to get chat sessions: ${response.statusCode} - ${response.body}');
+    }
+  }
+
+  // 최근 대화 내역 조회 (메인 페이지용)
+  static Future<List<ChatSession>> getLatestChatSessions(int deviceId) async {
+    print('[CHAT] 최근 대화 내역 요청 URL: $baseUrl/api/chat/sessions?device_id=$deviceId&is_latest=true');
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/chat/sessions?device_id=$deviceId&is_latest=true'),
+    );
+
+    print('[CHAT] API 응답 상태 코드: ${response.statusCode}');
+    print('[CHAT] API 응답 내용: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => ChatSession.fromJson(json)).toList();
+    } else if (response.statusCode == 404) {
+      throw Exception('최근 대화 내역 API 엔드포인트를 찾을 수 없습니다. 백엔드 개발자에게 문의해주세요.');
+    } else {
+      throw Exception('Failed to get latest chat sessions: ${response.statusCode} - ${response.body}');
+    }
+  }
+
+  // 챗봇 상세 대화 조회
+  static Future<ChatSession> getChatDetail(int deviceId, int sessionId) async {
+    print('[CHAT] 챗봇 상세 대화 요청 URL: $baseUrl/api/chat/sessions/$sessionId?device_id=$deviceId');
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/chat/sessions/$sessionId?device_id=$deviceId'),
+    );
+
+    print('[CHAT] API 응답 상태 코드: ${response.statusCode}');
+    print('[CHAT] API 응답 내용: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return ChatSession.fromJson(data);
+    } else if (response.statusCode == 404) {
+      throw Exception('챗봇 상세 대화 API 엔드포인트를 찾을 수 없습니다. 백엔드 개발자에게 문의해주세요.');
+    } else {
+      throw Exception('Failed to get chat detail: ${response.statusCode} - ${response.body}');
     }
   }
 
@@ -217,6 +453,7 @@ class ApiService {
     required int deviceId,
     required String message,
   }) async {
+    print('[CHAT] 챗봇 메시지 전송 요청 URL: $baseUrl/api/chat/send');
     final response = await http.post(
       Uri.parse('$baseUrl/api/chat/send'),
       headers: {'Content-Type': 'application/json'},
@@ -225,6 +462,9 @@ class ApiService {
         'message': message,
       }),
     );
+
+    print('[CHAT] API 응답 상태 코드: ${response.statusCode}');
+    print('[CHAT] API 응답 내용: ${response.body}');
 
     if (response.statusCode == 201) {
       return ChatMessage.fromJson(json.decode(response.body));
@@ -293,6 +533,33 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to stop sensor data collection');
+    }
+  }
+
+  // 챗봇 요약 보고서 조회
+  static Future<ChatSummary> getChatSummary(int deviceId, int sessionId) async {
+    try {
+      print('[CHAT] 챗봇 요약 보고서 요청 URL: $baseUrl/api/report/sessions/$sessionId');
+      
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/report/sessions/$sessionId'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('[CHAT] API 응답 상태 코드: ${response.statusCode}');
+      print('[CHAT] API 응답 내용: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return ChatSummary.fromJson(data);
+      } else {
+        throw Exception('Failed to load chat summary: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('[CHAT] 챗봇 요약 보고서 요청 실패: $e');
+      throw Exception('Failed to load chat summary: $e');
     }
   }
 } 

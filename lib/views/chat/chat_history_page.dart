@@ -5,14 +5,18 @@ import 'package:careapp5_15/views/sensor/sensor_data_page.dart'; // 센서 데�
 import 'package:careapp5_15/views/menu/menu_page.dart'; // 메뉴 임포트
 import 'package:careapp5_15/views/chat/chat_detail_page.dart'; // 챗봇 상세 페이지 임포트
 import 'package:careapp5_15/services/api_service.dart';
+import 'package:careapp5_15/views/chat/chatbot_summary_report_page.dart';
+import 'package:careapp5_15/widgets/custom_header.dart';
+import 'package:careapp5_15/widgets/custom_button.dart';
+import 'package:careapp5_15/theme/app_theme.dart';
 
 class ChatHistoryPage extends StatefulWidget {
   final int deviceId;
 
   const ChatHistoryPage({
-    super.key,
+    Key? key,
     required this.deviceId,
-  });
+  }) : super(key: key);
 
   @override
   State<ChatHistoryPage> createState() => _ChatHistoryPageState();
@@ -61,12 +65,13 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
       });
 
       // API에서 데이터를 가져오려고 시도
-      final messages = await ApiService.getChatHistory(widget.deviceId);
+      final sessions = await ApiService.getChatHistory(widget.deviceId);
       
       // API 데이터를 기존 형식으로 변환
-      final formattedHistory = messages.map((msg) => {
-        'date': msg.timestamp.toString().substring(0, 16),
-        'title': msg.message,
+      final formattedHistory = sessions.map((session) => {
+        'date': session.createdAt.toString().substring(0, 16),
+        'title': session.title,
+        'sessionId': session.id.toString(),
       }).toList();
 
       setState(() {
@@ -144,6 +149,8 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatDetailPage(
+                                  deviceId: widget.deviceId,
+                                  sessionId: int.parse(item['sessionId'] ?? '0'),
                                   date: item['date']!,
                                   title: item['title']!,
                                 ),
