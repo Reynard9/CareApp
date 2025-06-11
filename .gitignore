@@ -123,4 +123,31 @@ lib/generated_plugin_registrant.dart
 # Android
 /android/app/debug
 /android/app/profile
-/android/app/release 
+/android/app/release
+
+# Flutter/Dart 기본
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+.idea/
+.vscode/
+*.iml
+
+# 환경 변수/비밀키
+.env
+*.env
+google-services.json
+GoogleService-Info.plist
+
+# OS/에디터 임시파일
+.DS_Store
+android/.DS_Store
+assets/.DS_Store
+assets/icons/.DS_Store
+assets/images/.DS_Store
+
+# 기타
+*.lock 
