@@ -43,7 +43,7 @@ class NotificationBannerService {
     _isVisible = true;
     _isShowing = true;
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (_isShowing) {
         hideBanner();
       }

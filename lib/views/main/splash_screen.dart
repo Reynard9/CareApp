@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
-import 'package:careapp5_15/views/main/login_screen.dart'; // 로그인 화면 임포트
 
 class SplashScreen extends StatefulWidget { // 스플래시 화면 위젯
   const SplashScreen({super.key});
@@ -13,10 +12,7 @@ class _SplashScreenState extends State<SplashScreen> { // 스플래시 화면 �
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () { // 2초 후 이동
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()), // 로그인 화면으로 이동
-      );
+      Navigator.pushReplacementNamed(context, '/login'); // 로그인 화면으로 이동
     });
   }
 

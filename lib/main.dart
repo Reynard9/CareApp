@@ -5,14 +5,13 @@ import 'package:careapp5_15/views/main/login_screen.dart';
 import 'package:careapp5_15/views/auth/name_input_screen.dart';
 import 'package:careapp5_15/views/auth/qr_scan_page.dart';
 import 'package:careapp5_15/views/main/main_wrapper.dart'; // 메인 래퍼(네비게이션) 임포트
+import 'package:careapp5_15/views/main/main_screen.dart';
 import 'package:intl/date_symbol_data_local.dart'; // 날짜 포맷 로케일 초기화용
 import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/sensor_viewmodel.dart';
 import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:careapp5_15/views/main/home_page.dart';
 import 'package:careapp5_15/views/main/notification_page.dart';
-import 'package:careapp5_15/views/main/settings_page.dart';
 import 'package:careapp5_15/views/main/notification_detail_page.dart';
 import 'package:careapp5_15/models/notification.dart';
 

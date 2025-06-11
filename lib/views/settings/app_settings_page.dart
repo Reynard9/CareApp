@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
 import 'package:careapp5_15/views/settings/terms_page.dart';
 import 'package:careapp5_15/views/settings/privacy_policy_page.dart';
+import 'package:careapp5_15/views/settings/developer_mode_page.dart';
 
 class AppSettingsPage extends StatefulWidget {
   const AppSettingsPage({super.key});
@@ -185,6 +186,23 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildSection(
+            title: '개발자',
+            children: [
+              _buildSettingItem(
+                icon: Icons.developer_mode,
+                title: '개발자 모드',
+                subtitle: '테스트 기능을 활성화합니다',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DeveloperModePage()),
                   );
                 },
               ),

@@ -11,6 +11,7 @@ import 'package:careapp5_15/services/api_service.dart';
 import 'package:careapp5_15/services/sensor_notification_service.dart';
 import 'package:careapp5_15/widgets/notification_badge.dart';
 import 'package:careapp5_15/services/notification_store_service.dart';
+import 'package:careapp5_15/services/disaster_notification_service.dart';
 
 /// 센서 데이터를 표시하는 페이지 위젯
 /// 온도, 습도, 소음 데이터를 그래프로 시각화하고 실시간으로 모니터링
@@ -29,37 +30,114 @@ class SensorDataPage extends StatefulWidget {
 class _SensorDataPageState extends State<SensorDataPage> {
   final ApiService _apiService = ApiService();
   final SensorNotificationService _notificationService = SensorNotificationService();
+  final DisasterNotificationService _disasterNotificationService = DisasterNotificationService();
   List<Sensor> _sensorData = [];
   bool _isLoading = true;
   String? _error;
   int _unreadCount = 0;
   final NotificationStoreService _notificationStore = NotificationStoreService();
   
-  // 데이터 로딩을 위한 Future 객체
-  late Future<void> _loadDataFuture;
   // 주기적인 데이터 갱신을 위한 타이머
   Timer? _timer;
   
   // 현재 센서 데이터 값들
-  double temperature = 24.0;  // 온도 (섭씨)
-  double humidity = 45.0;     // 습도 (%)
-  double soundIn = 35.0;      // 소음 (dB)
+  double temperature = 0.0;  // 온도 (섭씨)
+  double humidity = 0.0;     // 습도 (%)
+  double soundIn = 0.0;      // 소음 (dB)
   
   // 최근 10개의 센서 데이터를 저장하는 리스트
   List<double> temperatureData = [];
   List<double> humidityData = [];
   List<double> soundData = [];
-  
-  // 더미 데이터 사용 여부 플래그
-  bool isUsingDummyData = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeSensorData();
+    _fetchSensorData();
     _loadUnreadCount();
-    _startPolling();
     _initializeNotifications();
+    _initializeNotificationService();
+    
+    // 30초마다 센서 데이터 갱신
+    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _fetchSensorData();
+      });
+    }
+
+  Future<void> _fetchSensorData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final sensors = await ApiService.getSensorList(widget.deviceId);
+      
+      if (!mounted) return;
+
+      setState(() {
+        for (var sensor in sensors) {
+          if (sensor.data.isEmpty) {
+            print('${sensor.type} 센서에 데이터가 없습니다.');
+            continue;
+          }
+
+          final rawData = sensor.data.first.data;
+          print('${sensor.type} 센서 원본 데이터: $rawData');
+
+          // 센서 타입에 따라 적절한 데이터 처리
+          final sensorType = sensor.type.toLowerCase();
+          print('처리할 센서 타입: $sensorType');
+
+          if (sensorType.contains('temp') || sensorType.contains('temperature')) {
+            temperature = _parseSensorData(rawData);
+            temperatureData = sensor.data.map((d) => _parseSensorData(d.data)).toList();
+            print('온도 데이터 처리 결과: $temperature');
+          } else if (sensorType.contains('humid') || sensorType.contains('humidity')) {
+            humidity = _parseSensorData(rawData);
+            humidityData = sensor.data.map((d) => _parseSensorData(d.data)).toList();
+            print('습도 데이터 처리 결과: $humidity');
+          } else if (sensorType.contains('sound') || sensorType.contains('noise')) {
+            soundIn = _parseSensorData(rawData);
+            soundData = sensor.data.map((d) => _parseSensorData(d.data)).toList();
+            print('소음 데이터 처리 결과: $soundIn');
+          }
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('센서 데이터 가져오기 실패: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = '센서 데이터를 불러오는데 실패했습니다.';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('센서 데이터를 불러오는데 실패했습니다.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // 센서 데이터 파싱 헬퍼 함수
+  double _parseSensorData(String data) {
+    try {
+      print('파싱 시도하는 데이터: $data');
+      // 쉼표나 공백으로 구분된 숫자 처리
+      final cleanData = data.replaceAll(RegExp(r'[^\d.-]'), '');
+      print('정제된 데이터: $cleanData');
+      final value = double.tryParse(cleanData);
+      if (value != null) {
+        print('데이터 파싱 성공: $value');
+        return value;
+      }
+      print('데이터 파싱 실패: null 반환');
+      } catch (e) {
+      print('데이터 파싱 중 예외 발생: $e');
+      }
+    return 0.0;
   }
 
   Future<void> _loadUnreadCount() async {
@@ -67,76 +145,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
     if (mounted) {
       setState(() {
         _unreadCount = _notificationStore.unreadCount;
-      });
-    }
-  }
-
-  /// API에서 센서 데이터를 가져오는 메서드
-  Future<void> _initializeSensorData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final data = await ApiService.getSensorList(widget.deviceId);
-      setState(() {
-        _sensorData = data;
-        // 소음 센서 데이터 추출 및 할당 (null 반환 오류 방지)
-        Sensor? noiseSensor;
-        try {
-          noiseSensor = data.firstWhere(
-            (sensor) => sensor.type.toLowerCase().contains('noise') || sensor.type.toLowerCase().contains('sound'),
-          );
-        } catch (_) {
-          noiseSensor = null;
-        }
-        if (noiseSensor != null && noiseSensor.data.isNotEmpty) {
-          soundIn = double.tryParse(noiseSensor.data.first.data) ?? 0.0;
-          soundData = noiseSensor.data.map((d) => double.tryParse(d.data) ?? 0.0).toList();
-        } else {
-          soundIn = 0.0;
-          soundData = [];
-        }
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = '센서 데이터를 불러오는데 실패했습니다: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  /// API 호출 실패 시 더미 데이터를 사용하는 메서드
-  void _useDummyData() {
-    if (!isUsingDummyData) {
-      setState(() {
-        // 더미 데이터로 업데이트
-        temperature = 24.0;
-        humidity = 45.0;
-        soundIn = 35.0;
-        
-        // 더미 데이터 리스트 업데이트
-        temperatureData = [24.0, 25.0, 24.0, 23.0, 24.0, 25.0, 26.0, 25.0, 24.0, 24.0];
-        humidityData = [45.0, 46.0, 47.0, 45.0, 44.0, 45.0, 46.0, 45.0, 44.0, 45.0];
-        soundData = [35.0, 40.0, 38.0, 42.0, 35.0, 37.0, 39.0, 36.0, 38.0, 35.0];
-        
-        isUsingDummyData = true;
-      });
-    }
-  }
-
-  /// 주기적으로 센서 데이터를 갱신하는 타이머 시작
-  void _startPolling() {
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      try {
-        // API에서 데이터 조회
-        await _initializeSensorData();
-      } catch (e) {
-        print('Error in polling: $e');
-      }
     });
+    }
   }
 
   Future<void> _initializeNotifications() async {
@@ -147,22 +157,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
     }
   }
 
-  void _generateDummyData() {
-    setState(() {
-      // 온도 데이터 생성 (22-26도 범위)
-      temperature = 24.0 + (DateTime.now().millisecondsSinceEpoch % 400) / 100;
-      temperatureData = List.generate(10, (i) => 24.0 + (i % 4) - 1.5);
-
-      // 습도 데이터 생성 (40-50% 범위)
-      humidity = 45.0 + (DateTime.now().millisecondsSinceEpoch % 1000) / 100;
-      humidityData = List.generate(10, (i) => 45.0 + (i % 10) - 5);
-
-      // 소음 데이터 생성 (30-45dB 범위)
-      soundIn = 35.0 + (DateTime.now().millisecondsSinceEpoch % 1500) / 100;
-      soundData = List.generate(10, (i) => 35.0 + (i % 15) - 7.5);
-
-      isUsingDummyData = false;
-    });
+  Future<void> _initializeNotificationService() async {
+    await _disasterNotificationService.initialize();
   }
 
   @override
@@ -170,10 +166,6 @@ class _SensorDataPageState extends State<SensorDataPage> {
     print('센서 데이터 페이지 종료');
     _timer?.cancel();
     _notificationService.stopMonitoring();
-    // 센서 데이터 수집 중지
-    ApiService.stopSensorDataCollection(widget.deviceId).catchError((e) {
-      print('Error stopping sensor data collection: $e');
-    });
     super.dispose();
   }
 
@@ -252,23 +244,23 @@ class _SensorDataPageState extends State<SensorDataPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-                  // 더미 데이터 사용 시 경고 메시지
-              if (isUsingDummyData)
+                  // 로딩 상태 표시
+                  if (_isLoading)
                 Container(
                   margin: const EdgeInsets.only(top: 16),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange[100],
+                        color: Colors.blue[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.orange[800]),
+                          Icon(Icons.info_outline, color: Colors.blue[800]),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '센서 데이터를 불러오는 중입니다. 현재 더미 데이터가 표시됩니다.',
-                          style: TextStyle(color: Colors.orange[800]),
+                              '센서 데이터를 불러오는 중입니다...',
+                              style: TextStyle(color: Colors.blue[800]),
                         ),
                       ),
                     ],
