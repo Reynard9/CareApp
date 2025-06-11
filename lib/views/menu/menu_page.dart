@@ -9,9 +9,34 @@ import 'package:careapp5_15/views/settings/notification_settings_page.dart'; // 
 import 'package:careapp5_15/views/settings/sensor_sensitivity_page.dart'; // 센서 감도 설정 페이지 임포트
 import 'package:careapp5_15/views/health/health_report_page.dart'; // 건강 리포트 페이지 임포트
 import 'package:careapp5_15/views/profile/profile_page.dart'; // 프로필 페이지 임포트
+import 'package:careapp5_15/widgets/notification_badge.dart';
+import 'package:careapp5_15/services/notification_store_service.dart';
 
-class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
+class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
+
+  @override
+  State<MenuPage> createState() => _MenuPageState();
+}
+
+class _MenuPageState extends State<MenuPage> {
+  final NotificationStoreService _notificationStore = NotificationStoreService();
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    await _notificationStore.initialize();
+    if (mounted) {
+      setState(() {
+        _unreadCount = _notificationStore.unreadCount;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,14 +127,50 @@ class MenuPage extends StatelessWidget { // 메뉴 화면 위젯
                         Image.asset('assets/images/careapp_logo.png', width: 100),
                         Row(
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_none, color: Colors.black),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const NotificationPage()),
-                                );
-                              },
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.notifications_none, color: Colors.black),
+                                    onPressed: () async {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                      );
+                                      await _loadUnreadCount();
+                                    },
+                                  ),
+                                  if (_unreadCount > 0)
+                                    Positioned(
+                                      right: -4,
+                                      top: -4,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 14,
+                                          minHeight: 14,
+                                        ),
+                                        child: Text(
+                                          _unreadCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.settings, color: Colors.black),

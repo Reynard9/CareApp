@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:careapp5_15/services/sensor_notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SensorSensitivityPage extends StatefulWidget {
   const SensorSensitivityPage({super.key});
@@ -8,12 +10,54 @@ class SensorSensitivityPage extends StatefulWidget {
 }
 
 class _SensorSensitivityPageState extends State<SensorSensitivityPage> {
+  final SensorNotificationService _notificationService = SensorNotificationService();
+  
   // 센서 감도 설정값
-  double _temperatureThreshold = 30.0;  // 온도 임계값
-  double _humidityThreshold = 60.0;     // 습도 임계값
-  double _noiseThreshold = 70.0;        // 소음 임계값
-  double _motionSensitivity = 0.7;      // 동작 감지 감도
-  double _lightSensitivity = 0.5;       // 조도 감지 감도
+  double _temperatureMin = 18.0;
+  double _temperatureMax = 28.0;
+  double _humidityMin = 40.0;
+  double _humidityMax = 60.0;
+  double _noiseThreshold = 70.0;
+
+  // 센서별 아이콘과 색상
+  final Map<String, IconData> _sensorIcons = {
+    'temperature': Icons.thermostat,
+    'humidity': Icons.water_drop,
+    'noise': Icons.volume_up,
+  };
+
+  final Map<String, Color> _sensorColors = {
+    'temperature': const Color(0xFFFF6B6B),
+    'humidity': const Color(0xFF4ECDC4),
+    'noise': const Color(0xFFFFD93D),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThresholds();
+  }
+
+  Future<void> _loadThresholds() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _temperatureMin = prefs.getDouble('temperature_min') ?? 18.0;
+      _temperatureMax = prefs.getDouble('temperature_max') ?? 28.0;
+      _humidityMin = prefs.getDouble('humidity_min') ?? 40.0;
+      _humidityMax = prefs.getDouble('humidity_max') ?? 60.0;
+      _noiseThreshold = prefs.getDouble('noise_threshold') ?? 70.0;
+    });
+  }
+
+  Future<void> _saveThresholds() async {
+    await _notificationService.updateThresholds(
+      temperatureMin: _temperatureMin,
+      temperatureMax: _temperatureMax,
+      humidityMin: _humidityMin,
+      humidityMax: _humidityMax,
+      noise: _noiseThreshold,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,169 +79,308 @@ class _SensorSensitivityPageState extends State<SensorSensitivityPage> {
         ),
       ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
+          _buildInfoCard(),
           const SizedBox(height: 24),
-          _buildHeader(),
-          const SizedBox(height: 24),
-          _buildSection(
-            title: '온도 센서',
-            children: [
-              _buildSliderItem(
-                icon: Icons.thermostat,
-                title: '온도 임계값',
-                subtitle: '${_temperatureThreshold.toStringAsFixed(1)}°C',
-                value: _temperatureThreshold,
-                min: 15.0,
-                max: 35.0,
-                divisions: 40,
-                onChanged: (value) {
-                  setState(() {
-                    _temperatureThreshold = value;
-                  });
-                },
-              ),
-            ],
+          _buildRangeCard(
+            title: '온도 범위',
+            minValue: _temperatureMin,
+            maxValue: _temperatureMax,
+            min: 15.0,
+            max: 35.0,
+            unit: '°C',
+            icon: _sensorIcons['temperature']!,
+            color: _sensorColors['temperature']!,
+            onMinChanged: (value) {
+              setState(() {
+                _temperatureMin = value;
+                if (_temperatureMin > _temperatureMax) {
+                  _temperatureMax = _temperatureMin;
+                }
+              });
+              _saveThresholds();
+            },
+            onMaxChanged: (value) {
+              setState(() {
+                _temperatureMax = value;
+                if (_temperatureMax < _temperatureMin) {
+                  _temperatureMin = _temperatureMax;
+                }
+              });
+              _saveThresholds();
+            },
           ),
-          const SizedBox(height: 24),
-          _buildSection(
-            title: '습도 센서',
-            children: [
-              _buildSliderItem(
-                icon: Icons.water_drop,
-                title: '습도 임계값',
-                subtitle: '${_humidityThreshold.toStringAsFixed(0)}%',
-                value: _humidityThreshold,
-                min: 30.0,
-                max: 90.0,
-                divisions: 60,
-                onChanged: (value) {
-                  setState(() {
-                    _humidityThreshold = value;
-                  });
-                },
-              ),
-            ],
+          const SizedBox(height: 16),
+          _buildRangeCard(
+            title: '습도 범위',
+            minValue: _humidityMin,
+            maxValue: _humidityMax,
+            min: 20.0,
+            max: 90.0,
+            unit: '%',
+            icon: _sensorIcons['humidity']!,
+            color: _sensorColors['humidity']!,
+            onMinChanged: (value) {
+              setState(() {
+                _humidityMin = value;
+                if (_humidityMin > _humidityMax) {
+                  _humidityMax = _humidityMin;
+                }
+              });
+              _saveThresholds();
+            },
+            onMaxChanged: (value) {
+              setState(() {
+                _humidityMax = value;
+                if (_humidityMax < _humidityMin) {
+                  _humidityMin = _humidityMax;
+                }
+              });
+              _saveThresholds();
+            },
           ),
-          const SizedBox(height: 24),
-          _buildSection(
-            title: '소음 센서',
-            children: [
-              _buildSliderItem(
-                icon: Icons.volume_up,
-                title: '소음 임계값',
-                subtitle: '${_noiseThreshold.toStringAsFixed(0)}dB',
-                value: _noiseThreshold,
-                min: 30.0,
-                max: 100.0,
-                divisions: 70,
-                onChanged: (value) {
-                  setState(() {
-                    _noiseThreshold = value;
-                  });
-                },
-              ),
-            ],
+          const SizedBox(height: 16),
+          _buildThresholdCard(
+            title: '소음 임계값',
+            value: _noiseThreshold,
+            min: 30.0,
+            max: 100.0,
+            unit: 'dB',
+            icon: _sensorIcons['noise']!,
+            color: _sensorColors['noise']!,
+            onChanged: (value) {
+              setState(() {
+                _noiseThreshold = value;
+              });
+              _saveThresholds();
+            },
           ),
-          const SizedBox(height: 24),
-          _buildSection(
-            title: '동작 감지',
-            children: [
-              _buildSliderItem(
-                icon: Icons.directions_walk,
-                title: '동작 감지 감도',
-                subtitle: '${(_motionSensitivity * 100).toStringAsFixed(0)}%',
-                value: _motionSensitivity,
-                min: 0.0,
-                max: 1.0,
-                divisions: 10,
-                onChanged: (value) {
-                  setState(() {
-                    _motionSensitivity = value;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildSection(
-            title: '조도 센서',
-            children: [
-              _buildSliderItem(
-                icon: Icons.light_mode,
-                title: '조도 감지 감도',
-                subtitle: '${(_lightSensitivity * 100).toStringAsFixed(0)}%',
-                value: _lightSensitivity,
-                min: 0.0,
-                max: 1.0,
-                divisions: 10,
-                onChanged: (value) {
-                  setState(() {
-                    _lightSensitivity = value;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          _buildSaveButton(),
-          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildInfoCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4ECDC4), Color(0xFF2E8B84)],
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF6C5CE7).withOpacity(0.1),
+            const Color(0xFFA8E6CF).withOpacity(0.1),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4ECDC4).withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF6C5CE7).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6C5CE7).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: Color(0xFF6C5CE7),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                '센서 감도 설정 안내',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3436),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '각 센서의 적정 범위를 설정하여 이상 상황을 감지할 수 있습니다. 설정된 범위를 벗어나면 알림이 발송됩니다.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF636E72),
+              height: 1.5,
+            ),
           ),
         ],
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildRangeCard({
+    required String title,
+    required double minValue,
+    required double maxValue,
+    required double min,
+    required double max,
+    required String unit,
+    required IconData icon,
+    required Color color,
+    required ValueChanged<double> onMinChanged,
+    required ValueChanged<double> onMaxChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: color.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
             ),
-            child: const Icon(
-              Icons.settings_input_component,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 12),
                 Text(
-                  '센서 감도 설정',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3436),
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  '각 센서의 감도와 임계값을 조절하세요',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '최소값',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF636E72),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SliderTheme(
+                            data: SliderThemeData(
+                              activeTrackColor: color,
+                              inactiveTrackColor: color.withOpacity(0.2),
+                              thumbColor: color,
+                              overlayColor: color.withOpacity(0.1),
+                              valueIndicatorColor: color,
+                              valueIndicatorTextStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                            ),
+                            child: Slider(
+                              value: minValue,
+                              min: min,
+                              max: max,
+                              divisions: ((max - min) * 10).round(),
+                              label: '${minValue.toStringAsFixed(1)}$unit',
+                              onChanged: onMinChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '최대값',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF636E72),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SliderTheme(
+                            data: SliderThemeData(
+                              activeTrackColor: color,
+                              inactiveTrackColor: color.withOpacity(0.2),
+                              thumbColor: color,
+                              overlayColor: color.withOpacity(0.1),
+                              valueIndicatorColor: color,
+                              valueIndicatorTextStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                            ),
+                            child: Slider(
+                              value: maxValue,
+                              min: min,
+                              max: max,
+                              divisions: ((max - min) * 10).round(),
+                              label: '${maxValue.toStringAsFixed(1)}$unit',
+                              onChanged: onMaxChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '최소: ${minValue.toStringAsFixed(1)}$unit',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                      Text(
+                        '최대: ${maxValue.toStringAsFixed(1)}$unit',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -208,152 +391,102 @@ class _SensorSensitivityPageState extends State<SensorSensitivityPage> {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildThresholdCard({
     required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF636E72),
-            ),
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: children,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSliderItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
     required double value,
     required double min,
     required double max,
-    required int divisions,
+    required String unit,
+    required IconData icon,
+    required Color color,
     required ValueChanged<double> onChanged,
   }) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4ECDC4).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: const Color(0xFF4ECDC4), size: 20),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3436),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: const Color(0xFF4ECDC4),
-              inactiveTrackColor: const Color(0xFF4ECDC4).withOpacity(0.2),
-              thumbColor: const Color(0xFF4ECDC4),
-              overlayColor: const Color(0xFF4ECDC4).withOpacity(0.1),
-              valueIndicatorColor: const Color(0xFF4ECDC4),
-              valueIndicatorTextStyle: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-              ),
-            ),
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              label: subtitle,
-              onChanged: onChanged,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: ElevatedButton(
-        onPressed: () {
-          // TODO: 설정 저장 로직 구현
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('센서 감도 설정이 저장되었습니다'),
-              backgroundColor: Color(0xFF4ECDC4),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
             ),
-          );
-          Navigator.pop(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4ECDC4),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3436),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        child: const Text(
-          '설정 저장',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                SliderTheme(
+                  data: SliderThemeData(
+                    activeTrackColor: color,
+                    inactiveTrackColor: color.withOpacity(0.2),
+                    thumbColor: color,
+                    overlayColor: color.withOpacity(0.1),
+                    valueIndicatorColor: color,
+                    valueIndicatorTextStyle: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  child: Slider(
+                    value: value,
+                    min: min,
+                    max: max,
+                    divisions: ((max - min) * 10).round(),
+                    label: '${value.toStringAsFixed(1)}$unit',
+                    onChanged: onChanged,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '임계값: ${value.toStringAsFixed(1)}$unit',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,0 +1,2 @@
+/Users/gyubin/Desktop/CareApp/android/app/.cxx/Debug/2z6p7050/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/gyubin/Desktop/CareApp/android/app/.cxx/Debug/2z6p7050/armeabi-v7a/CMakeFiles/rebuild_cache.dir

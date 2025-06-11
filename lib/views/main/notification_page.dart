@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
 import 'package:intl/intl.dart';
+import 'package:careapp5_15/services/notification_store_service.dart';
 import 'notification_detail_page.dart';
 
 enum NotificationType {
@@ -26,71 +27,32 @@ class NotificationItem {
   });
 }
 
-class NotificationPage extends StatelessWidget { // 알림 내역 화면 위젯
+class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
-  List<NotificationItem> get _notifications => [
-        NotificationItem(
-          date: DateTime.now(),
-          type: NotificationType.todo,
-          title: '약 복용 알림',
-          time: '09:00',
-          status: '확인중',
-        ),
-        NotificationItem(
-          date: DateTime.now(),
-          type: NotificationType.schedule,
-          title: '병원 진료 일정',
-          time: '11:30',
-          status: '확인완료',
-        ),
-        NotificationItem(
-          date: DateTime.now(),
-          type: NotificationType.environment,
-          title: '습도 80% 이상',
-          time: '13:05',
-          status: '확인중',
-        ),
-        NotificationItem(
-          date: DateTime.now(),
-          type: NotificationType.disaster,
-          title: '재난문자: 폭염주의보',
-          time: '14:20',
-          status: '확인완료',
-        ),
-        NotificationItem(
-          date: DateTime.now(),
-          type: NotificationType.carecall,
-          title: '정기 안부케어콜',
-          time: '16:00',
-          status: '확인완료',
-        ),
-        NotificationItem(
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          type: NotificationType.environment,
-          title: '온도 30°C 이상',
-          time: '10:10',
-          status: '확인완료',
-        ),
-        NotificationItem(
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          type: NotificationType.environment,
-          title: '소음 이상 감지',
-          time: '12:05',
-          status: '확인완료',
-        ),
-        NotificationItem(
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          type: NotificationType.schedule,
-          title: '요양보호사 방문',
-          time: '14:00',
-          status: '확인완료',
-        ),
-      ];
+  @override
+  State<NotificationPage> createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
+  final NotificationStoreService _notificationStore = NotificationStoreService();
+  List<NotificationItem> _notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    await _notificationStore.initialize();
+    setState(() {
+      _notifications = _notificationStore.notifications;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final notifications = _notifications;
     return Scaffold(
       backgroundColor: Colors.pink[50], // 전체 배경 연핑크
       appBar: AppBar(
@@ -102,6 +64,12 @@ class NotificationPage extends StatelessWidget { // 알림 내역 화면 위젯
         ),
         title: const Text('발생내역', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), // 타이틀
         centerTitle: true, // 가운데 정렬
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _loadNotifications,
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -109,25 +77,35 @@ class NotificationPage extends StatelessWidget { // 알림 내역 화면 위젯
           borderRadius: BorderRadius.vertical(top: Radius.circular(30)), // 위쪽만 둥글게
         ),
         padding: const EdgeInsets.all(20), // 전체 패딩
-        child: ListView.builder(
-          itemCount: notifications.length,
-          itemBuilder: (context, index) {
-            final notification = notifications[index];
-            final isNewDay = index == 0 ||
-                !_isSameDay(notifications[index - 1].date, notification.date);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isNewDay) ...[
-                  const SizedBox(height: 16),
-                  _buildDateHeader(notification.date),
-                  const SizedBox(height: 10),
-                ],
-                _buildAlertCard(context, notification),
-              ],
-            );
-          },
-        ),
+        child: _notifications.isEmpty
+            ? const Center(
+                child: Text(
+                  '알림이 없습니다',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+              )
+            : ListView.builder(
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final notification = _notifications[index];
+                  final isNewDay = index == 0 ||
+                      !_isSameDay(_notifications[index - 1].date, notification.date);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (isNewDay) ...[
+                        const SizedBox(height: 16),
+                        _buildDateHeader(notification.date),
+                        const SizedBox(height: 10),
+                      ],
+                      _buildAlertCard(context, notification),
+                    ],
+                  );
+                },
+              ),
       ),
     );
   }

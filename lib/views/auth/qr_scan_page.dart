@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:developer' as developer;
 import 'package:careapp5_15/views/main/main_wrapper.dart';
@@ -14,8 +14,7 @@ class QRScanPage extends StatefulWidget {
 }
 
 class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateMixin {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
+  MobileScannerController controller = MobileScannerController();
   bool isCameraPermissionGranted = false;
   String? errorMessage;
   late AnimationController _animationController;
@@ -57,27 +56,20 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    controller?.dispose();
+    controller.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      developer.log('QR Code scanned: ${scanData.code}');
-      if (scanData.code != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-        );
-      }
-    }, onError: (error) {
-      developer.log('Error scanning QR code: $error');
-      setState(() {
-        errorMessage = 'QR 코드 스캔 중 오류가 발생했습니다.';
-      });
-    });
+  void _onDetect(BarcodeCapture capture) {
+    final List<Barcode> barcodes = capture.barcodes;
+    if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+      developer.log('QR Code scanned: ${barcodes.first.rawValue}');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainWrapper()),
+      );
+    }
   }
 
   @override
@@ -197,15 +189,19 @@ class _QRScanPageState extends State<QRScanPage> with SingleTickerProviderStateM
                         child: isCameraPermissionGranted
                             ? Stack(
                                 children: [
-                                  QRView(
-                                    key: qrKey,
-                                    onQRViewCreated: _onQRViewCreated,
-                                    overlay: QrScannerOverlayShape(
-                                      borderColor: Colors.pink[300]!,
-                                      borderRadius: 18,
-                                      borderLength: 40,
-                                      borderWidth: 8,
-                                      cutOutSize: 240,
+                                  MobileScanner(
+                                    controller: controller,
+                                    fit: BoxFit.cover,
+                                    onDetect: _onDetect,
+                                    overlay: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.pink[300]!,
+                                          width: 4,
+                                        ),
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      margin: const EdgeInsets.all(40),
                                     ),
                                   ),
                                   // 컬러 애니메이션 스캔 라인

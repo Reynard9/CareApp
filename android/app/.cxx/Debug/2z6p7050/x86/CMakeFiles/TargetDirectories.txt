@@ -1,0 +1,2 @@
+/Users/gyubin/Desktop/CareApp/android/app/.cxx/Debug/2z6p7050/x86/CMakeFiles/edit_cache.dir
+/Users/gyubin/Desktop/CareApp/android/app/.cxx/Debug/2z6p7050/x86/CMakeFiles/rebuild_cache.dir

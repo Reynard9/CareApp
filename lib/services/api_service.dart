@@ -287,6 +287,10 @@ class ChatSummary {
 }
 
 class ApiService {
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
+
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://api-deepcare.thedeeplabs.com';
   static int get sessionId => int.tryParse(dotenv.env['SESSION_ID'] ?? '39') ?? 39;
 
@@ -368,23 +372,26 @@ class ApiService {
     }
   }
 
-  // 센서 목록 조회
+  // 센서 데이터 조회 메서드
   static Future<List<Sensor>> getSensorList(int deviceId) async {
-    // print('센서 데이터 요청 URL: $baseUrl/api/sensor?dependency_id=$deviceId');
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/sensor?dependency_id=$deviceId'),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/sensor?dependency_id=$deviceId'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
 
-    // print('API 응답 상태 코드: ${response.statusCode}');
-    // print('API 응답 내용: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Sensor.fromJson(json)).toList();
-    } else if (response.statusCode == 502) {
-      throw Exception('백엔드 서버 연결 오류 (502 Bad Gateway). 서버 관리자에게 문의해주세요.');
-    } else {
-      throw Exception('Failed to get sensor list: ${response.statusCode} - ${response.body}');
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((json) => Sensor.fromJson(json)).toList();
+      } else {
+        print('센서 데이터 조회 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('센서 데이터 조회 중 오류 발생: $e');
+      return [];
     }
   }
 

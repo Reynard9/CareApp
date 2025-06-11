@@ -9,8 +9,8 @@ import 'package:careapp5_15/views/main/login_screen.dart';
 import 'package:careapp5_15/views/auth/name_input_screen.dart';
 import 'package:careapp5_15/views/auth/qr_scan_page.dart';
 import 'package:careapp5_15/views/main/main_screen.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:careapp5_15/services/sensor_notification_service.dart';
 
 void main() async { // 앱 실행 진입점
   WidgetsFlutterBinding.ensureInitialized(); // 플러터 바인딩 초기화
@@ -18,23 +18,28 @@ void main() async { // 앱 실행 진입점
   // 환경 변수 로드
   await dotenv.load(fileName: ".env");
   
-  // 카카오 SDK 초기화
-  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY'] ?? '');
+  // 날짜/시간 포맷을 한국어로 초기화
+  await initializeDateFormatting('ko_KR', null);
   
-  await initializeDateFormatting('ko_KR', null); // 날짜/시간 포맷을 한국어로 초기화
+  // 알림 서비스 초기화
+  final notificationService = SensorNotificationService();
+  await notificationService.initialize();
+  
+  // 앱 실행
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SensorViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
       ],
-      child: const CareApp(),
+      child: CareApp(notificationService: notificationService),
     ),
-  ); // CareApp 위젯 실행
+  );
 }
 
 class CareApp extends StatelessWidget { // 앱 전체를 감싸는 위젯
-  const CareApp({super.key});
+  final SensorNotificationService notificationService;
+  const CareApp({super.key, required this.notificationService});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +53,11 @@ class CareApp extends StatelessWidget { // 앱 전체를 감싸는 위젯
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const SplashScreen(),
+        '/': (context) {
+          // SplashScreen에서 시작, 이후 자동 이동
+          notificationService.startMonitoring(context);
+          return const SplashScreen();
+        },
         '/login': (context) => const LoginScreen(),
         '/name-input': (context) => const NameInputScreen(),
         '/qr-scan': (context) {

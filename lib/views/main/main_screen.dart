@@ -10,6 +10,7 @@ import 'package:careapp5_15/viewmodels/user_viewmodel.dart';
 import 'package:careapp5_15/services/api_service.dart';
 import 'dart:async';
 import 'package:careapp5_15/views/status/elder_status_page.dart';
+import 'package:careapp5_15/services/notification_store_service.dart';
 
 class MainScreen extends StatefulWidget { // 메인 홈 화면 위젯
   const MainScreen({super.key});
@@ -28,6 +29,14 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
   double currentHumidity = 0.0;
   bool isSensorLoading = true;
 
+  // 최근 챗봇 이력 상태 변수 추가
+  List<Map<String, dynamic>> _latestFullMessages = [];
+  bool _isChatLoading = true;
+  final ScrollController _chatScrollController = ScrollController();
+
+  final NotificationStoreService _notificationStore = NotificationStoreService();
+  int _unreadCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +47,8 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
     Timer.periodic(const Duration(seconds: 30), (timer) {
       _fetchSensorData();
     });
+    _fetchLatestChats();
+    _loadUnreadCount();
   }
 
   void _updateDateTime() { // 현재 날짜/시간을 포맷팅해서 저장
@@ -127,6 +138,55 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
     }
   }
 
+  Future<void> _fetchLatestChats() async {
+    setState(() {
+      _isChatLoading = true;
+    });
+    try {
+      const deviceId = 1;
+      final sessions = await ApiService.getLatestChatSessions(deviceId);
+      if (sessions.isNotEmpty) {
+        final session = sessions.first;
+        // 첫 메시지는 제외 (대화 시작 명령어)
+        final messages = session.chats
+            .skip(1)
+            .map((chat) => {
+              'isUser': chat.role == 'user',
+              'text': chat.content,
+            })
+            .toList();
+        setState(() {
+          _latestFullMessages = messages;
+          _isChatLoading = false;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_chatScrollController.hasClients) {
+            _chatScrollController.jumpTo(_chatScrollController.position.maxScrollExtent);
+          }
+        });
+      } else {
+        setState(() {
+          _latestFullMessages = [];
+          _isChatLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _latestFullMessages = [];
+        _isChatLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadUnreadCount() async {
+    await _notificationStore.initialize();
+    if (mounted) {
+      setState(() {
+        _unreadCount = _notificationStore.unreadCount;
+      });
+    }
+  }
+
   // 센서 데이터 파싱 헬퍼 함수
   double _parseSensorData(String data) {
     try {
@@ -171,14 +231,50 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                         icon: Icon(Icons.search, color: innerBoxIsScrolled ? Colors.black87 : Colors.black),
                         onPressed: () {},
                       ),
-                      IconButton(
-                        icon: Icon(Icons.notifications_none, color: innerBoxIsScrolled ? Colors.black87 : Colors.black),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationPage()),
-                          );
-                        },
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: Icon(Icons.notifications_none, color: innerBoxIsScrolled ? Colors.black87 : Colors.black),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                );
+                                await _loadUnreadCount();
+                              },
+                            ),
+                            if (_unreadCount > 0)
+                              Positioned(
+                                right: -4,
+                                top: -4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 14,
+                                    minHeight: 14,
+                                  ),
+                                  child: Text(
+                                    _unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -310,42 +406,68 @@ class _MainScreenState extends State<MainScreen> { // 메인 홈 화면 상태
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              margin: const EdgeInsets.only(bottom: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.pink[100],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text('어 오늘 아침 먹었어'), // 챗봇 대화 예시
+                          if (_isChatLoading)
+                            const Center(child: CircularProgressIndicator()),
+                          if (!_isChatLoading && _latestFullMessages.isEmpty)
+                            const Center(
+                              child: Text('아직 챗봇 대화 내역이 없습니다', style: TextStyle(color: Colors.grey, fontSize: 14)),
                             ),
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const CircleAvatar(
-                                backgroundColor: Colors.grey,
-                                radius: 12,
-                                child: Icon(Icons.person, size: 14, color: Colors.white),
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    '김치찌개 맛있으셨겠어요. 혹시\n요즘 스트레스를 많이 느끼시나요, 어르신?', // 챗봇 답변 예시
-                                    style: TextStyle(fontSize: 14),
-                                  ),
+                          if (!_isChatLoading && _latestFullMessages.isNotEmpty)
+                            SizedBox(
+                              height: 180,
+                              child: Scrollbar(
+                                controller: _chatScrollController,
+                                thumbVisibility: true,
+                                child: ListView.builder(
+                                  controller: _chatScrollController,
+                                  itemCount: _latestFullMessages.length,
+                                  itemBuilder: (context, idx) {
+                                    final msg = _latestFullMessages[idx];
+                                    if (msg['isUser'] == true) {
+                                      return Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Container(
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.pink[100],
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(msg['text'] ?? '', style: const TextStyle(color: Colors.black)),
+                                        ),
+                                      );
+                                    } else {
+                                      return Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[300],
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(Icons.person, color: Colors.black54, size: 26),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Container(
+                                              margin: const EdgeInsets.only(bottom: 8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(msg['text'] ?? '', style: const TextStyle(color: Colors.black)),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  },
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
                         ],
                       ),
                     ),

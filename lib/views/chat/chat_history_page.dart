@@ -9,6 +9,8 @@ import 'package:careapp5_15/views/chat/chatbot_summary_report_page.dart';
 import 'package:careapp5_15/widgets/custom_header.dart';
 import 'package:careapp5_15/widgets/custom_button.dart';
 import 'package:careapp5_15/theme/app_theme.dart';
+import 'package:careapp5_15/widgets/notification_badge.dart';
+import 'package:careapp5_15/services/notification_store_service.dart';
 
 class ChatHistoryPage extends StatefulWidget {
   final int deviceId;
@@ -26,6 +28,8 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
   bool _isLoading = true;
   String? _error;
   List<Map<String, String>> _chatHistory = [];
+  int _unreadCount = 0;
+  final NotificationStoreService _notificationStore = NotificationStoreService();
 
   // 더미 데이터
   final List<Map<String, String>> _dummyData = [
@@ -55,6 +59,7 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
   void initState() {
     super.initState();
     _loadChatHistory();
+    _loadUnreadCount();
   }
 
   Future<void> _loadChatHistory() async {
@@ -87,6 +92,15 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
     }
   }
 
+  Future<void> _loadUnreadCount() async {
+    await _notificationStore.initialize();
+    if (mounted) {
+      setState(() {
+        _unreadCount = _notificationStore.unreadCount;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,14 +119,50 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
                   icon: const Icon(Icons.search, color: Colors.black),
                   onPressed: () {},
                 ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none, color: Colors.black),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const NotificationPage()),
-                    );
-                  },
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.notifications_none, color: Colors.black),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationPage()),
+                          );
+                          await _loadUnreadCount();
+                        },
+                      ),
+                      if (_unreadCount > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 14,
+                              minHeight: 14,
+                            ),
+                            child: Text(
+                              _unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),

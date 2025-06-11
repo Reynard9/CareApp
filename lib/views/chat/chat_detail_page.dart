@@ -54,11 +54,13 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
       // API에서 데이터를 가져오려고 시도
       final session = await ApiService.getChatDetail(widget.deviceId, widget.sessionId);
       
-      // API 데이터를 기존 형식으로 변환
-      final formattedMessages = session.chats.map((chat) => {
-        'isUser': chat.role == 'user',
-        'text': chat.content,
-      }).toList();
+      // 첫 메시지는 제외 (대화 시작 명령어)
+      final formattedMessages = session.chats
+          .skip(1)
+          .map((chat) => {
+            'isUser': chat.role == 'user',
+            'text': chat.content,
+          }).toList();
 
       setState(() {
         _messages = formattedMessages;

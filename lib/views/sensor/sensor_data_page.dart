@@ -8,19 +8,33 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:careapp5_15/services/api_service.dart';
+import 'package:careapp5_15/services/sensor_notification_service.dart';
+import 'package:careapp5_15/widgets/notification_badge.dart';
+import 'package:careapp5_15/services/notification_store_service.dart';
 
 /// 센서 데이터를 표시하는 페이지 위젯
 /// 온도, 습도, 소음 데이터를 그래프로 시각화하고 실시간으로 모니터링
 class SensorDataPage extends StatefulWidget {
   final int deviceId;
   
-  const SensorDataPage({super.key, required this.deviceId});
+  const SensorDataPage({
+    super.key,
+    required this.deviceId,
+  });
 
   @override
   State<SensorDataPage> createState() => _SensorDataPageState();
 }
 
 class _SensorDataPageState extends State<SensorDataPage> {
+  final ApiService _apiService = ApiService();
+  final SensorNotificationService _notificationService = SensorNotificationService();
+  List<Sensor> _sensorData = [];
+  bool _isLoading = true;
+  String? _error;
+  int _unreadCount = 0;
+  final NotificationStoreService _notificationStore = NotificationStoreService();
+  
   // 데이터 로딩을 위한 Future 객체
   late Future<void> _loadDataFuture;
   // 주기적인 데이터 갱신을 위한 타이머
@@ -39,63 +53,58 @@ class _SensorDataPageState extends State<SensorDataPage> {
   // 더미 데이터 사용 여부 플래그
   bool isUsingDummyData = false;
 
-  /// API에서 센서 데이터를 가져오는 메서드
-  Future<void> fetchSensorData() async {
-    try {
-      final sensors = await ApiService.getSensorList(widget.deviceId);
-      
+  @override
+  void initState() {
+    super.initState();
+    _initializeSensorData();
+    _loadUnreadCount();
+    _startPolling();
+    _initializeNotifications();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    await _notificationStore.initialize();
+    if (mounted) {
       setState(() {
-        // 각 센서 데이터 처리
-        for (var sensor in sensors) {
-          // 데이터가 없는 경우 "데이터 없음" 표시
-          if (sensor.data.isEmpty) {
-            switch (sensor.type) {
-              case 'temperature':
-                temperature = 0;
-                temperatureData = [];
-                break;
-              case 'humidity':
-                humidity = 0;
-                humidityData = [];
-                break;
-              case 'sound':
-                soundIn = 0;
-                soundData = [];
-                break;
-            }
-            continue;
-          }
-          
-          // 최신 데이터로 현재값 업데이트
-          final latestData = double.parse(sensor.data.first.data);
-          
-          switch (sensor.type) {
-            case 'temperature':
-              temperature = latestData;
-              temperatureData = sensor.data
-                  .map((d) => double.parse(d.data))
-                  .toList();
-              break;
-            case 'humidity':
-              humidity = latestData;
-              humidityData = sensor.data
-                  .map((d) => double.parse(d.data))
-                  .toList();
-              break;
-            case 'sound':
-              soundIn = latestData;
-              soundData = sensor.data
-                  .map((d) => double.parse(d.data))
-                  .toList();
-              break;
-          }
+        _unreadCount = _notificationStore.unreadCount;
+      });
+    }
+  }
+
+  /// API에서 센서 데이터를 가져오는 메서드
+  Future<void> _initializeSensorData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final data = await ApiService.getSensorList(widget.deviceId);
+      setState(() {
+        _sensorData = data;
+        // 소음 센서 데이터 추출 및 할당 (null 반환 오류 방지)
+        Sensor? noiseSensor;
+        try {
+          noiseSensor = data.firstWhere(
+            (sensor) => sensor.type.toLowerCase().contains('noise') || sensor.type.toLowerCase().contains('sound'),
+          );
+        } catch (_) {
+          noiseSensor = null;
         }
-        
-        isUsingDummyData = false;
+        if (noiseSensor != null && noiseSensor.data.isNotEmpty) {
+          soundIn = double.tryParse(noiseSensor.data.first.data) ?? 0.0;
+          soundData = noiseSensor.data.map((d) => double.tryParse(d.data) ?? 0.0).toList();
+        } else {
+          soundIn = 0.0;
+          soundData = [];
+        }
+        _isLoading = false;
       });
     } catch (e) {
-      print('Error fetching sensor data: $e');
-      _useDummyData();
+      setState(() {
+        _error = '센서 데이터를 불러오는데 실패했습니다: $e';
+        _isLoading = false;
+      });
     }
   }
 
@@ -120,30 +129,21 @@ class _SensorDataPageState extends State<SensorDataPage> {
 
   /// 주기적으로 센서 데이터를 갱신하는 타이머 시작
   void _startPolling() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       try {
         // API에서 데이터 조회
-        await fetchSensorData();
+        await _initializeSensorData();
       } catch (e) {
         print('Error in polling: $e');
       }
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeSensorData();
-    _startPolling();
-  }
-
-  Future<void> _initializeSensorData() async {
+  Future<void> _initializeNotifications() async {
     try {
-      // 초기 데이터 로드
-      await fetchSensorData();
+      await _notificationService.startMonitoring(context);
     } catch (e) {
-      print('Error initializing sensor data: $e');
-      _useDummyData();
+      print('알림 초기화 중 오류 발생: $e');
     }
   }
 
@@ -167,7 +167,9 @@ class _SensorDataPageState extends State<SensorDataPage> {
 
   @override
   void dispose() {
+    print('센서 데이터 페이지 종료');
     _timer?.cancel();
+    _notificationService.stopMonitoring();
     // 센서 데이터 수집 중지
     ApiService.stopSensorDataCollection(widget.deviceId).catchError((e) {
       print('Error stopping sensor data collection: $e');
@@ -193,14 +195,49 @@ class _SensorDataPageState extends State<SensorDataPage> {
                   icon: const Icon(Icons.search, color: Colors.black),
                   onPressed: () {},
                 ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none, color: Colors.black),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const NotificationPage()),
-                    );
-                  },
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.notifications_none, color: Colors.black),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotificationPage()),
+                          );
+                        },
+                      ),
+                      if (_unreadCount > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 14,
+                              minHeight: 14,
+                            ),
+                            child: Text(
+                              _unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
