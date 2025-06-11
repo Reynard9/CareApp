@@ -3,16 +3,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:careapp5_15/services/api_service.dart';
 import 'package:careapp5_15/services/notification_store_service.dart';
+import 'package:careapp5_15/services/notification_banner_service.dart';
 import 'package:careapp5_15/views/main/notification_page.dart';
 import 'package:flutter/material.dart';
+import 'package:careapp5_15/models/notification.dart';
+import 'package:careapp5_15/services/sensor_service.dart';
 
 class SensorNotificationService {
   static final SensorNotificationService _instance = SensorNotificationService._internal();
   factory SensorNotificationService() => _instance;
-  SensorNotificationService._internal();
+
+  final SensorService _sensorService;
+  final NotificationBannerService _bannerService;
+  final NotificationStoreService _notificationStore;
+  final List<String> _excludedRoutes = [
+    '/',
+    '/login',
+    '/name-input',
+    '/qr-scan',
+  ];
+
+  SensorNotificationService._internal()
+      : _sensorService = SensorService(),
+        _bannerService = NotificationBannerService(),
+        _notificationStore = NotificationStoreService();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
-  final NotificationStoreService _notificationStore = NotificationStoreService();
   Timer? _monitoringTimer;
   bool _isMonitoring = false;
   int _deviceId = 1; // 기본 디바이스 ID
@@ -31,7 +47,7 @@ class SensorNotificationService {
 
   BuildContext? _monitoringContext;
 
-  Future<void> initialize() async {
+  Future<void> initialize(BuildContext context) async {
     print('알림 서비스 초기화 시작');
     try {
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -51,6 +67,53 @@ class SensorNotificationService {
       
       await _loadThresholds();
       print('알림 서비스 초기화 완료');
+
+      _sensorService.temperatureStream.listen((temperature) {
+        if (temperature > 30) {
+          _showNotification(
+            context,
+            '온도 경고',
+            '현재 온도가 ${temperature.toStringAsFixed(1)}°C로 높습니다.',
+            NotificationType.temperature,
+          );
+        } else if (temperature < 10) {
+          _showNotification(
+            context,
+            '온도 경고',
+            '현재 온도가 ${temperature.toStringAsFixed(1)}°C로 낮습니다.',
+            NotificationType.temperature,
+          );
+        }
+      });
+
+      _sensorService.humidityStream.listen((humidity) {
+        if (humidity > 80) {
+          _showNotification(
+            context,
+            '습도 경고',
+            '현재 습도가 ${humidity.toStringAsFixed(1)}%로 높습니다.',
+            NotificationType.humidity,
+          );
+        } else if (humidity < 30) {
+          _showNotification(
+            context,
+            '습도 경고',
+            '현재 습도가 ${humidity.toStringAsFixed(1)}%로 낮습니다.',
+            NotificationType.humidity,
+          );
+        }
+      });
+
+      _sensorService.soundStream.listen((sound) {
+        if (sound > 70) {
+          _showNotification(
+            context,
+            '소음 경고',
+            '현재 소음이 ${sound.toStringAsFixed(1)}dB로 높습니다.',
+            NotificationType.sound,
+          );
+        }
+      });
     } catch (e) {
       print('알림 서비스 초기화 중 오류 발생: $e');
       rethrow;
@@ -141,7 +204,7 @@ class SensorNotificationService {
               _monitoringContext!,
               '온도 이상',
               '현재 온도가 ${latestData.toStringAsFixed(1)}°C로 낮습니다. 적정 온도는 ${_temperatureMin}~${_temperatureMax}°C입니다.',
-              NotificationType.environment,
+              NotificationType.temperature,
             );
           } else if (latestData > _temperatureMax) {
             print('온도 이상 감지: $latestData°C (최대값: ${_temperatureMax}°C)');
@@ -149,7 +212,7 @@ class SensorNotificationService {
               _monitoringContext!,
               '온도 이상',
               '현재 온도가 ${latestData.toStringAsFixed(1)}°C로 높습니다. 적정 온도는 ${_temperatureMin}~${_temperatureMax}°C입니다.',
-              NotificationType.environment,
+              NotificationType.temperature,
             );
           }
         }
@@ -162,7 +225,7 @@ class SensorNotificationService {
               _monitoringContext!,
               '습도 이상',
               '현재 습도가 ${latestData.toStringAsFixed(1)}%로 낮습니다. 적정 습도는 ${_humidityMin}~${_humidityMax}%입니다.',
-              NotificationType.environment,
+              NotificationType.humidity,
             );
           } else if (latestData > _humidityMax) {
             print('습도 이상 감지: $latestData% (최대값: ${_humidityMax}%)');
@@ -170,7 +233,7 @@ class SensorNotificationService {
               _monitoringContext!,
               '습도 이상',
               '현재 습도가 ${latestData.toStringAsFixed(1)}%로 높습니다. 적정 습도는 ${_humidityMin}~${_humidityMax}%입니다.',
-              NotificationType.environment,
+              NotificationType.humidity,
             );
           }
         }
@@ -183,7 +246,7 @@ class SensorNotificationService {
               _monitoringContext!,
               '소음 이상',
               '현재 소음이 ${latestData.toStringAsFixed(1)}dB로 높습니다. 적정 소음은 ${_noiseThreshold}dB 이하입니다.',
-              NotificationType.environment,
+              NotificationType.sound,
             );
           }
         }
@@ -193,46 +256,20 @@ class SensorNotificationService {
     }
   }
 
-  Future<void> _showNotification(BuildContext context, String title, String body, NotificationType type) async {
-    print('알림 발송 시도: $title - $body');
-    try {
-      // 로컬 알림 표시
-      const androidDetails = AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        showWhen: true,
-      );
+  Future<void> _showNotification(BuildContext context, String title, String message, NotificationType type) async {
+    if (_monitoringContext == null) return;
 
-      const iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
+    final notification = await _notificationStore.addNotification(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: title,
+      message: message,
+      type: type,
+    );
 
-      const details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
+    _bannerService.showBanner(_monitoringContext!, notification);
+  }
 
-      await _notifications.show(
-        DateTime.now().millisecond,
-        title,
-        body,
-        details,
-      );
-
-      // 알림 저장소에 알림 추가
-      await _notificationStore.addNotification(
-        type: type,
-        title: title,
-      );
-
-      print('알림 발송 성공');
-    } catch (e) {
-      print('알림 발송 중 오류 발생: $e');
-    }
+  void dispose() {
+    _monitoringContext = null;
   }
 } 

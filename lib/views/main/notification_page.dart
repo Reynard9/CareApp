@@ -1,31 +1,8 @@
 import 'package:flutter/material.dart'; // 플러터 UI 프레임워크 임포트
 import 'package:intl/intl.dart';
 import 'package:careapp5_15/services/notification_store_service.dart';
+import 'package:careapp5_15/models/notification.dart';
 import 'notification_detail_page.dart';
-
-enum NotificationType {
-  todo,
-  schedule,
-  disaster,
-  environment,
-  carecall,
-}
-
-class NotificationItem {
-  final DateTime date;
-  final NotificationType type;
-  final String title;
-  final String time;
-  final String status;
-
-  NotificationItem({
-    required this.date,
-    required this.type,
-    required this.title,
-    required this.time,
-    required this.status,
-  });
-}
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -36,7 +13,7 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final NotificationStoreService _notificationStore = NotificationStoreService();
-  List<NotificationItem> _notifications = [];
+  List<NotificationModel> _notifications = [];
 
   @override
   void initState() {
@@ -45,10 +22,128 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _loadNotifications() async {
-    await _notificationStore.initialize();
+    final notifications = await _notificationStore.getNotifications();
     setState(() {
-      _notifications = _notificationStore.notifications;
+      _notifications = notifications;
     });
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return '오늘';
+    } else if (difference.inDays == 1) {
+      return '어제';
+    } else {
+      return '${date.year}년 ${date.month}월 ${date.day}일';
+    }
+  }
+
+  Widget _buildDateHeader(DateTime date) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        _formatDate(date),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  IconData _getIcon(NotificationType type) {
+    switch (type) {
+      case NotificationType.temperature:
+        return Icons.thermostat;
+      case NotificationType.humidity:
+        return Icons.water_drop;
+      case NotificationType.airQuality:
+        return Icons.air;
+      case NotificationType.illuminance:
+        return Icons.light_mode;
+      case NotificationType.ultraviolet:
+        return Icons.wb_sunny;
+      case NotificationType.rainfall:
+        return Icons.grain;
+      case NotificationType.rainfallRate:
+        return Icons.water;
+      case NotificationType.windSpeed:
+        return Icons.air;
+      case NotificationType.windDirection:
+        return Icons.explore;
+      case NotificationType.pressure:
+        return Icons.speed;
+      case NotificationType.sound:
+        return Icons.volume_up;
+      case NotificationType.unknown:
+        return Icons.notifications;
+    }
+  }
+
+  Color _getColor(NotificationType type) {
+    switch (type) {
+      case NotificationType.temperature:
+        return Colors.red;
+      case NotificationType.humidity:
+        return Colors.blue;
+      case NotificationType.airQuality:
+        return Colors.green;
+      case NotificationType.illuminance:
+        return Colors.amber;
+      case NotificationType.ultraviolet:
+        return Colors.purple;
+      case NotificationType.rainfall:
+        return Colors.blue;
+      case NotificationType.rainfallRate:
+        return Colors.blue;
+      case NotificationType.windSpeed:
+        return Colors.cyan;
+      case NotificationType.windDirection:
+        return Colors.cyan;
+      case NotificationType.pressure:
+        return Colors.orange;
+      case NotificationType.sound:
+        return Colors.pink;
+      case NotificationType.unknown:
+        return Colors.grey;
+    }
+  }
+
+  String _getLabel(NotificationType type) {
+    switch (type) {
+      case NotificationType.temperature:
+        return '온도';
+      case NotificationType.humidity:
+        return '습도';
+      case NotificationType.airQuality:
+        return '공기질';
+      case NotificationType.illuminance:
+        return '조도';
+      case NotificationType.ultraviolet:
+        return '자외선';
+      case NotificationType.rainfall:
+        return '강수량';
+      case NotificationType.rainfallRate:
+        return '강수확률';
+      case NotificationType.windSpeed:
+        return '풍속';
+      case NotificationType.windDirection:
+        return '풍향';
+      case NotificationType.pressure:
+        return '기압';
+      case NotificationType.sound:
+        return '소음';
+      case NotificationType.unknown:
+        return '알림';
+    }
   }
 
   @override
@@ -91,16 +186,17 @@ class _NotificationPageState extends State<NotificationPage> {
                 itemCount: _notifications.length,
                 itemBuilder: (context, index) {
                   final notification = _notifications[index];
-                  final isNewDay = index == 0 ||
-                      !_isSameDay(_notifications[index - 1].date, notification.date);
+                  final showDateHeader = index == 0 ||
+                      !_isSameDay(
+                        _notifications[index - 1].timestamp,
+                        notification.timestamp,
+                      );
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isNewDay) ...[
-                        const SizedBox(height: 16),
-                        _buildDateHeader(notification.date),
-                        const SizedBox(height: 10),
-                      ],
+                      if (showDateHeader)
+                        _buildDateHeader(notification.timestamp),
                       _buildAlertCard(context, notification),
                     ],
                   );
@@ -110,31 +206,7 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  Widget _buildDateHeader(DateTime date) {
-    final now = DateTime.now();
-    final yesterday = now.subtract(const Duration(days: 1));
-    String dateText;
-    if (_isSameDay(date, now)) {
-      dateText = '오늘';
-    } else if (_isSameDay(date, yesterday)) {
-      dateText = '어제';
-    } else {
-      dateText = DateFormat('M월 d일 (E)', 'ko_KR').format(date);
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Text(
-        dateText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAlertCard(BuildContext context, NotificationItem notification) {
+  Widget _buildAlertCard(BuildContext context, NotificationModel notification) {
     final iconData = _getIcon(notification.type);
     final color = _getColor(notification.type);
     final label = _getLabel(notification.type);
@@ -228,54 +300,5 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
       ),
     );
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
-  IconData _getIcon(NotificationType type) {
-    switch (type) {
-      case NotificationType.todo:
-        return Icons.check_circle_rounded;
-      case NotificationType.schedule:
-        return Icons.event_note_rounded;
-      case NotificationType.disaster:
-        return Icons.warning_amber_rounded;
-      case NotificationType.environment:
-        return Icons.eco_rounded;
-      case NotificationType.carecall:
-        return Icons.phone_in_talk_rounded;
-    }
-  }
-
-  Color _getColor(NotificationType type) {
-    switch (type) {
-      case NotificationType.todo:
-        return Colors.blueAccent;
-      case NotificationType.schedule:
-        return Colors.teal;
-      case NotificationType.disaster:
-        return Colors.redAccent;
-      case NotificationType.environment:
-        return Colors.orangeAccent;
-      case NotificationType.carecall:
-        return Colors.purple;
-    }
-  }
-
-  String _getLabel(NotificationType type) {
-    switch (type) {
-      case NotificationType.todo:
-        return '할일';
-      case NotificationType.schedule:
-        return '일정';
-      case NotificationType.disaster:
-        return '재난';
-      case NotificationType.environment:
-        return '환경';
-      case NotificationType.carecall:
-        return '케어콜';
-    }
   }
 }
